@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>16 格數字摺紙挑戰</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#12343B; --ink-soft:#4C676C; --orange:#E8552D; --amber:#F4A93C; --teal:#028090;
+  --bg:#EEF6F4; --card:#FFFFFF; --line:#D5E5E2;
+  --mat:#0F6B67; --mat-dark:#0A5552; --mat-line:rgba(255,255,255,.13); --mat-tick:rgba(255,255,255,.35);
+  --front:#FFFDF6; --back:#FFD39A; --fold-line:rgba(18,52,59,.22);
+  --chip:#E3EFED; --shadow:0 4px 0 rgba(18,52,59,.14);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ink:#EAF4F2; --ink-soft:#A9C2C0; --bg:#0F1F22; --card:#17302F; --line:#29474A; --chip:#21403F;
+    --mat:#0B4F4C; --mat-dark:#083E3C; --front:#FFFDF6; --back:#FFD39A; --shadow:0 4px 0 rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#EAF4F2; --ink-soft:#A9C2C0; --bg:#0F1F22; --card:#17302F; --line:#29474A; --chip:#21403F;
+  --mat:#0B4F4C; --mat-dark:#083E3C; --shadow:0 4px 0 rgba(0,0,0,.35);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif;font-size:19px;line-height:1.55;}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible+span{outline:3px solid var(--orange);outline-offset:3px}
+.num-font{font-family:"Fredoka","Noto Sans TC",sans-serif}
+
+/* header */
+header.top{display:flex;align-items:center;gap:16px;padding:14px clamp(14px,3vw,32px);flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:12px;margin-right:auto}
+.logo-mark{width:52px;height:52px;display:grid;grid-template-columns:repeat(4,1fr);gap:2px;padding:5px;background:var(--mat);border-radius:12px;transform:rotate(-6deg)}
+.logo-mark i{background:var(--front);border-radius:2px}
+.logo-mark i:nth-child(6),.logo-mark i:nth-child(11){background:var(--orange)}
+.logo h1{margin:0;font-size:clamp(24px,3.2vw,34px);font-weight:900;letter-spacing:.02em;line-height:1.15}
+.logo p{margin:2px 0 0;color:var(--ink-soft);font-size:16px}
+.ghost{border:2px solid var(--line);background:var(--card);border-radius:14px;padding:8px 14px;font-weight:700;font-size:17px}
+.ghost[aria-pressed="false"]{opacity:.6}
+
+/* mode tabs */
+.modes{display:flex;gap:10px;padding:0 clamp(14px,3vw,32px) 10px;overflow-x:auto;scrollbar-width:thin}
+.mode{flex:0 0 auto;display:flex;align-items:center;gap:10px;border:3px solid transparent;background:var(--card);border-radius:18px;padding:10px 16px 10px 12px;box-shadow:var(--shadow);text-align:left}
+.mode .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--chip);font-size:20px}
+.mode b{display:block;font-size:19px;font-weight:900;line-height:1.2}
+.mode small{display:block;color:var(--ink-soft);font-size:14px;line-height:1.3}
+.mode[aria-selected="true"]{border-color:var(--orange)}
+.mode[aria-selected="true"] .ic{background:var(--orange);color:#fff}
+
+/* layout */
+main{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;padding:6px clamp(14px,3vw,32px) 24px;align-items:start}
+@media (max-width:900px){main{grid-template-columns:1fr}}
+.stage{background:var(--card);border-radius:26px;padding:18px clamp(12px,2vw,24px) 20px;box-shadow:var(--shadow)}
+.levels{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.lv{border:none;background:var(--chip);border-radius:999px;padding:7px 16px;font-weight:700;font-size:17px}
+.lv .st{color:var(--amber);letter-spacing:1px;margin-left:4px}
+.lv[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.lv[aria-pressed="true"] .st{color:var(--amber)}
+
+/* challenge */
+.challenge{display:flex;align-items:center;gap:18px;flex-wrap:wrap;min-height:84px;margin-bottom:14px}
+.ch-text{flex:1 1 300px}
+.ch-title{font-size:clamp(24px,3vw,34px);font-weight:900;line-height:1.3;margin:0}
+.ch-sub{margin:4px 0 0;color:var(--ink-soft);font-size:18px}
+.stamp{display:inline-grid;place-items:center;min-width:1.55em;height:1.55em;padding:0 .2em;margin:0 .12em;border-radius:.35em;background:var(--orange);color:#fff;font-family:"Fredoka",sans-serif;font-weight:700;transform:rotate(-3deg);box-shadow:0 3px 0 rgba(0,0,0,.18);vertical-align:-.12em}
+.stamp:nth-of-type(even){transform:rotate(3deg);background:var(--teal)}
+.mini{display:inline-grid;gap:3px;padding:6px;background:var(--mat);border-radius:10px}
+.mini span{width:46px;height:46px;display:grid;place-items:center;background:var(--front);color:#12343B;font-family:"Fredoka",sans-serif;font-weight:700;font-size:24px;border-radius:4px}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-size:clamp(26px,3vw,32px)}
+
+/* mat */
+.mat-wrap{position:relative;display:flex;justify-content:center}
+.mat{position:relative;border-radius:22px;background-color:var(--mat);
+  background-image:linear-gradient(var(--mat-line) 1px,transparent 1px),linear-gradient(90deg,var(--mat-line) 1px,transparent 1px);
+  box-shadow:inset 0 0 0 6px var(--mat-dark);perspective:1400px;overflow:visible;touch-action:manipulation}
+.mat::before,.mat::after{content:"";position:absolute;pointer-events:none}
+.mat::before{left:10px;right:10px;top:6px;height:8px;background:repeating-linear-gradient(90deg,var(--mat-tick) 0 1px,transparent 1px 12px)}
+.mat::after{top:10px;bottom:10px;left:6px;width:8px;background:repeating-linear-gradient(180deg,var(--mat-tick) 0 1px,transparent 1px 12px)}
+.paper{position:absolute;transform-style:preserve-3d;perspective:1400px;filter:drop-shadow(0 6px 6px rgba(0,0,0,.28))}
+.paper.recenter{transition:left .32s ease,top .32s ease}
+.cell{position:absolute;display:grid;place-items:center;border:1.5px dashed var(--fold-line);background:var(--front);color:#12343B;backface-visibility:visible;user-select:none}
+.cell.back{background:var(--back)}
+.cell .n{font-family:"Fredoka",sans-serif;font-weight:700;line-height:1;transition:transform .2s}
+.cell .n.rot{transform:rotate(180deg)}
+.cell .badge{position:absolute;right:4px;bottom:3px;font-size:13px;font-weight:700;color:rgba(18,52,59,.65);background:rgba(255,255,255,.7);border-radius:6px;padding:0 5px;line-height:1.5}
+.cell .xr{position:absolute;left:4px;top:3px;font-family:"Fredoka",sans-serif;font-size:13px;font-weight:600;color:rgba(18,52,59,.6);letter-spacing:.03em;max-width:90%;line-height:1.2;text-align:left}
+.cell.tg{box-shadow:inset 0 0 0 5px var(--orange)}
+.cell.tg .n{color:var(--orange)}
+.cell.under{z-index:0}
+.cell.win{animation:pop .6s ease}
+@keyframes pop{40%{transform:scale(1.12)}}
+.crease{position:absolute;z-index:20;display:flex;align-items:center;justify-content:center;border:none;background:transparent;padding:0}
+.crease::before{content:"";position:absolute;background:transparent;border-radius:4px}
+.crease.v::before{top:-6px;bottom:-6px;width:6px;left:50%;margin-left:-3px}
+.crease.h::before{left:-6px;right:-6px;height:6px;top:50%;margin-top:-3px}
+.crease:hover::before,.crease.sel::before{background:var(--orange)}
+.crease.sel::before{box-shadow:0 0 0 4px rgba(232,85,45,.3)}
+.crease.hint::before{background:var(--amber);animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.25}}
+.zone{position:absolute;z-index:25;border:none;border-radius:6px;background:rgba(232,85,45,.16);display:grid;place-items:center;color:#fff;font-weight:900;font-size:18px;outline:3px dashed rgba(232,85,45,.85);outline-offset:-3px}
+.zone span{background:var(--orange);border-radius:999px;padding:6px 14px;box-shadow:0 3px 0 rgba(0,0,0,.2);white-space:nowrap}
+.zone:hover{background:rgba(232,85,45,.3)}
+.zone.hint{animation:blink 1s infinite}
+.adjbar{position:absolute;z-index:30;background:var(--orange);border-radius:999px;pointer-events:none;box-shadow:0 0 0 4px #fff}
+.cover{position:absolute;inset:0;z-index:40;border-radius:22px;background:var(--mat);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#fff;text-align:center;padding:20px}
+.cover .big{font-size:clamp(26px,3.4vw,40px);font-weight:900;line-height:1.3}
+.cover .sheet{width:120px;height:120px;display:grid;grid-template-columns:repeat(4,1fr);background:var(--front);transform:rotate(-8deg);border-radius:4px}
+.cover .sheet i{border:1px dashed rgba(18,52,59,.3);display:grid;place-items:center;color:#12343B;font-family:Fredoka,sans-serif;font-style:normal;font-weight:700;font-size:15px}
+.caption{min-height:34px;margin-top:12px;text-align:center;font-weight:700;font-size:20px;color:var(--teal)}
+.caption.warn{color:var(--orange)}
+
+/* side */
+aside{display:flex;flex-direction:column;gap:16px}
+.panel{background:var(--card);border-radius:22px;padding:16px 18px;box-shadow:var(--shadow)}
+.stats{display:flex;gap:10px}
+.stat{flex:1;background:var(--chip);border-radius:16px;padding:8px 12px;text-align:center}
+.stat small{display:block;font-size:15px;color:var(--ink-soft);font-weight:700}
+.stat b{font-family:"Fredoka",sans-serif;font-size:40px;line-height:1.1}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.btn{border:none;border-radius:16px;padding:12px 10px;font-weight:900;font-size:19px;background:var(--chip);box-shadow:0 4px 0 rgba(18,52,59,.18);display:flex;align-items:center;justify-content:center;gap:8px;min-height:56px}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(18,52,59,.18)}
+.btn.primary{background:var(--orange);color:#fff}
+.btn.teal{background:var(--teal);color:#fff}
+.btn.wide{grid-column:1/-1}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.panel h2{margin:0 0 10px;font-size:20px;font-weight:900}
+.presets{display:flex;gap:8px;margin-bottom:10px}
+.presets button{flex:1;border:2px solid var(--line);background:transparent;border-radius:14px;padding:8px 4px;font-weight:700;font-size:17px}
+.presets button[aria-pressed="true"]{background:var(--teal);border-color:var(--teal);color:#fff}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 0;font-size:17px;cursor:pointer}
+.toggle input{position:absolute;opacity:0;width:1px;height:1px}
+.toggle span.sw{flex:0 0 auto;width:50px;height:30px;border-radius:999px;background:var(--line);position:relative;transition:background .2s}
+.toggle span.sw::after{content:"";position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.toggle input:checked+span.sw{background:var(--teal)}
+.toggle input:checked+span.sw::after{left:23px}
+.toggle input:focus-visible+span.sw{outline:3px solid var(--orange);outline-offset:2px}
+.note{font-size:15px;color:var(--ink-soft);margin:6px 0 0}
+
+/* modal + celebrate */
+.overlay{position:fixed;inset:0;z-index:100;background:rgba(10,30,34,.55);display:none;align-items:center;justify-content:center;padding:18px}
+.overlay.show{display:flex}
+.dialog{background:var(--card);border-radius:26px;max-width:720px;width:100%;max-height:88vh;overflow:auto;padding:24px clamp(18px,3vw,32px);box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.dialog h2{margin:0 0 6px;font-size:28px;font-weight:900}
+.dialog h3{margin:20px 0 6px;font-size:21px;color:var(--teal)}
+.dialog p,.dialog li{font-size:18px}
+.dialog ul{padding-left:1.2em;margin:6px 0}
+.win-card{text-align:center;max-width:460px}
+.win-card .stars{font-size:56px;color:var(--amber);letter-spacing:6px;line-height:1.2}
+.win-card .stars i{font-style:normal;color:var(--line)}
+.win-card .big{font-size:40px;font-weight:900;margin:4px 0}
+.win-card .actions{grid-template-columns:1fr 1fr}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:99;overflow:hidden}
+.confetti i{position:absolute;top:-30px;width:16px;height:16px;border:1px dashed rgba(18,52,59,.3);animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+
+.coin{display:flex;align-items:center;gap:10px}
+.coin>div{display:flex;flex-direction:column;align-items:center;gap:4px}
+.coin small{font-size:14px;color:var(--ink-soft);font-weight:700}
+.coin .face{width:64px;height:64px;border-radius:12px;display:grid;place-items:center;font-family:Fredoka,sans-serif;font-weight:700;font-size:34px;color:#12343B;border:3px solid var(--orange);background:var(--front)}
+.coin .face.b{background:var(--back)}
+.coin .turn{font-size:30px;color:var(--teal);font-weight:900}
+.backview{display:none;align-items:center;justify-content:center;gap:14px;margin-top:6px;flex-wrap:wrap}
+.bv-label{font-weight:900;color:var(--ink-soft);font-size:17px}
+.bv-grid{display:inline-grid;gap:2px;padding:5px;background:var(--mat);border-radius:8px}
+.bv-grid span{display:grid;place-items:center;background:var(--front);color:#12343B;font-family:Fredoka,sans-serif;font-weight:700;border-radius:3px}
+.bv-grid span.b{background:var(--back)}
+.bv-grid span.tg{box-shadow:inset 0 0 0 3px var(--orange);color:var(--orange)}
+.bv-grid i{font-style:normal}.bv-grid i.rot{transform:rotate(180deg)}
+footer{text-align:center;color:var(--ink-soft);font-size:15px;padding:10px 16px 26px}
+@media (prefers-reduced-motion:reduce){.confetti{display:none}.paper.recenter{transition:none}}
+@media (max-width:560px){
+  body{font-size:18px}
+  .mode small{display:none}
+  .actions .btn{font-size:17px}
+}
+
+.logo-tri{width:54px;height:54px;transform:rotate(-6deg)}
+#board{display:block;width:100%;height:100%;touch-action:manipulation}
+.face{stroke:rgba(18,52,59,.32);stroke-width:.025;stroke-dasharray:.07 .05;stroke-linejoin:round}
+.face.front{fill:var(--front)}.face.back{fill:var(--back)}
+.flipped .face.front{fill:var(--back)}.flipped .face.back{fill:var(--front)}
+.flipped text{display:none}
+.tnum{font-family:"Fredoka","Noto Sans TC",sans-serif;font-weight:700;fill:#12343B;text-anchor:middle;dominant-baseline:central}
+.tnum.tg{fill:#E8552D}
+.ring{fill:none;stroke:#E8552D;stroke-width:.06;stroke-linejoin:round}
+.tbadge{font-family:"Noto Sans TC",sans-serif;font-weight:700;fill:rgba(18,52,59,.6);text-anchor:middle;dominant-baseline:central}
+.txr{font-family:"Fredoka",sans-serif;font-weight:600;fill:rgba(18,52,59,.55);text-anchor:middle;dominant-baseline:central}
+.fl{stroke:#7FD3CF;stroke-width:.045;stroke-dasharray:.12 .08;stroke-linecap:round;pointer-events:none}
+.fl-hit{stroke:transparent;stroke-width:.32;cursor:pointer;stroke-linecap:round}
+.fl-dot{fill:#7FD3CF;stroke:#0F6B67;stroke-width:.03;cursor:pointer}
+.fl-g:hover .fl,.fl-g.sel .fl{stroke:#E8552D;stroke-width:.08;stroke-dasharray:none}
+.fl-g:hover .fl-dot,.fl-g.sel .fl-dot{fill:#E8552D}
+.fl-g.hint .fl{stroke:#F4A93C;stroke-width:.09;stroke-dasharray:none;animation:blink 1s infinite}
+.zonep{fill:rgba(232,85,45,.2);stroke:rgba(232,85,45,.9);stroke-width:.03;cursor:pointer}
+.zonep:hover{fill:rgba(232,85,45,.35)}
+.zone-g.hint .zonep{animation:blink 1s infinite}
+.zlabel rect{fill:#E8552D}.zlabel text{fill:#fff;font-family:"Noto Sans TC",sans-serif;font-weight:900;text-anchor:middle;dominant-baseline:central}
+.zlabel{cursor:pointer}
+.adjdot{fill:#E8552D;stroke:#fff;stroke-width:.05}
+.rule-sheet{display:block;width:min(320px,80%);margin:10px auto;background:var(--mat);border-radius:12px;padding:6px}
+.mini-svg{background:var(--mat);border-radius:10px}
+
+
+.mat svg #lay0,.mat svg #lay1{filter:drop-shadow(0 4px 4px rgba(0,0,0,.25))}
+.modes{flex-wrap:wrap}
+@media (max-width:700px){.modes{flex-wrap:nowrap}}
+.paper-switch{display:flex;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:4px;gap:4px}
+.paper-switch button{border:none;background:transparent;border-radius:12px;padding:7px 14px;font-weight:900;font-size:17px;display:flex;align-items:center;gap:6px}
+.paper-switch button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.paper-switch svg{width:22px;height:22px}
+.hole{fill:var(--mat);stroke:rgba(0,0,0,.35);stroke-width:.025}
+.punch-mark{fill:none;stroke:#E8552D;stroke-width:.05;stroke-dasharray:.08 .05}
+.answer{display:none;flex-direction:column;align-items:center;gap:8px;margin-top:10px}
+.answer.show{display:flex}
+.answer .lbl{font-weight:900;font-size:20px}
+.answer svg{width:min(330px,86vw);height:auto;background:var(--mat);border-radius:14px;cursor:pointer}
+.ans-face{fill:var(--front);stroke:rgba(18,52,59,.35);stroke-width:.025;stroke-dasharray:.07 .05}
+.ans-face.pick{fill:#FFB59B}
+.ans-face.ok{fill:#9FE0D9}.ans-face.miss{fill:#FFE2D8;stroke:#E8552D;stroke-width:.06;stroke-dasharray:none}.ans-face.wrong{fill:#D9DEDF}
+.ans-mark{font-family:"Noto Sans TC",sans-serif;font-weight:900;text-anchor:middle;dominant-baseline:central}
+.legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:16px;font-weight:700}
+.legend i{display:inline-block;width:18px;height:18px;border-radius:4px;vertical-align:-3px;margin-right:4px}
+.mz-face{fill:var(--front);stroke:rgba(18,52,59,.35);stroke-width:.025;stroke-dasharray:.07 .05;cursor:pointer}
+.mz-face:hover{fill:#FFF1D6}
+.mz-face.next{fill:#E2F4F2}
+.mz-face.end{fill:#FFE0D3}
+.mz-clue{font-family:"Fredoka",sans-serif;font-weight:700;fill:#12343B;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.mz-num{font-family:"Fredoka",sans-serif;font-weight:600;fill:#028090;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.mz-path{fill:none;stroke:#E8552D;stroke-width:.07;stroke-linecap:round;stroke-linejoin:round;opacity:.75;pointer-events:none}
+.mz-wrong{fill:#FFD0C2}
+.actions .btn[hidden]{display:none}
+
+.ring2{stroke:#028090}
+.tnum.tg2{fill:#028090}
+.adjdot2{fill:#028090}
+.stepbar{display:none;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:8px}
+.stepbar.show{display:flex}
+.stepbar .btn{min-height:54px;padding:10px 20px}
+.step-lab{font-size:20px;font-weight:900;min-width:120px;text-align:center}
+.step-lab b{font-family:"Fredoka",sans-serif;font-size:30px;color:var(--orange)}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="logo">
+    <div class="logo-mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div><h1>16 格數字摺紙挑戰</h1><p>只能沿著摺線摺，動腦把數字摺到指定的位置</p></div>
+  </div>
+  <div class="paper-switch" role="group" aria-label="選擇紙張">
+    <button data-paper="sq"><svg viewBox="0 0 4 4"><rect x=".3" y=".3" width="3.4" height="3.4" fill="#FFFDF6" stroke="currentColor" stroke-width=".25"/><path d="M2 .3V3.7M.3 2H3.7" stroke="currentColor" stroke-width=".2"/></svg>方形紙</button>
+    <button data-paper="tri"><svg viewBox="0 0 4 4"><rect x=".3" y=".3" width="3.4" height="3.4" fill="#FFFDF6" stroke="currentColor" stroke-width=".25"/><path d="M.3 .3L3.7 3.7M3.7 .3L.3 3.7M2 .3L3.7 2L2 3.7L.3 2Z" fill="none" stroke="currentColor" stroke-width=".2"/></svg>三角紙</button>
+  </div>
+  <button class="ghost" id="soundBtn" aria-pressed="true">音效 開</button>
+  <button class="ghost" id="rulesBtn">玩法說明</button>
+</header>
+<nav class="modes" role="tablist" id="modes"></nav>
+<main>
+  <section class="stage">
+    <div class="levels" id="levels"></div>
+    <div class="challenge" id="challenge"></div>
+    <div class="mat-wrap"><div class="mat" id="mat">
+      <svg id="board" xmlns="http://www.w3.org/2000/svg"><g id="world"><g id="lay0"></g><g id="lay1"></g><g id="ui"></g></g></svg>
+    </div></div>
+    <div class="caption" id="caption" aria-live="polite"></div>
+    <div class="stepbar" id="stepbar"></div>
+    <div class="answer" id="answer"></div>
+    <div class="backview" id="backview"></div>
+  </section>
+  <aside>
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><small id="stat1L">已經摺了</small><b id="stat1">0</b></div>
+        <div class="stat"><small id="stat2L">最少要摺</small><b id="stat2">–</b></div>
+      </div>
+      <div class="actions" id="actions"></div>
+    </div>
+    <div class="panel">
+      <h2>數字方向</h2>
+      <div class="presets" id="orient"><button data-o="real">跟著紙翻轉</button><button data-o="up">永遠正著看</button></div>
+      <p class="note" style="margin:0 0 6px">跟著紙翻轉：摺過去的數字會倒過來或轉向，和真的紙一樣。</p>
+    </div>
+    <div class="panel">
+      <h2>輔助程度</h2>
+      <div class="presets" id="presets">
+        <button data-p="easy">輕鬆</button><button data-p="std">標準</button><button data-p="hard">挑戰</button>
+      </div>
+      <label class="toggle">圈出題目的數字<input type="checkbox" id="optMarks"><span class="sw"></span></label>
+      <label class="toggle">顯示每格有幾層<input type="checkbox" id="optBadges"><span class="sw"></span></label>
+      <label class="toggle">透視被蓋住的數字<input type="checkbox" id="optXray"><span class="sw"></span></label>
+      <label class="toggle">顯示翻過來的樣子<input type="checkbox" id="optBack"><span class="sw"></span></label>
+      <label class="toggle">顯示露出數字的總和<input type="checkbox" id="optSum"><span class="sw"></span></label>
+      <label class="toggle">迷宮標出下一步可以走的格子<input type="checkbox" id="optNext"><span class="sw"></span></label>
+      <label class="toggle">限制摺數（只能用最少摺數）<input type="checkbox" id="optLimit"><span class="sw"></span></label>
+      <label class="toggle">用實體紙帶領（隱藏網頁上的紙）<input type="checkbox" id="optPhysical"><span class="sw"></span></label>
+      <p class="note" id="colorNote">白色是紙的正面，橘色是背面。每一格正反面都是同一個數字。</p>
+    </div>
+  </aside>
+</main>
+<footer>設計者｜愛迪樂 鍾孟修 職能治療師</footer>
+
+<div class="overlay" id="rules" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+  <div class="dialog">
+    <h2 id="rulesTitle">玩法說明</h2>
+    <h3>準備方形紙</h3>
+    <p>A4 紙橫的摺 3 條線、直的摺 3 條線，分成 16 格。正面從左上到右下寫 1 到 16；把紙左右翻過來，從右上到左下也寫 1 到 16，這樣每一格正反面會是同一個數字。</p>
+    <svg class="rule-sheet" id="ruleSq" viewBox="-0.15 -0.15 4.3 4.3" aria-label="方形紙數字位置"></svg>
+    <h3>準備三角紙</h3>
+    <p>拿一張正方形的紙，先對摺兩次摺出十字，再摺出兩條對角線，最後把四個角往中心點摺再打開，紙上就會有 16 個三角形，和「東南西北」的摺痕一樣。數字照下圖寫：右上那一塊是 1 到 4，左上是 5 到 8，右下是 9 到 12，左下是 13 到 16；每一塊都從上面那個三角形開始，往左、往下、往右繞一圈。背面同一個三角形也寫同一個數字。</p>
+    <svg class="rule-sheet" id="ruleTri" viewBox="-0.15 -0.15 4.3 4.3" aria-label="三角紙數字位置"></svg>
+    <h3>規則只有一條</h3>
+    <p>只能沿著摺線摺，紙也可以翻面、轉方向。網頁上淡藍色的虛線是現在可以摺的線：先點一下線，再點要摺過去的那一邊。</p>
+    <h3>一步一步看解答</h3>
+    <p>按「看解答」後，紙會回到攤開的樣子，下方出現「上一步／下一步」。每一步都會先把要摺的線和要摺過去的那一邊標出來，按「下一步」才會摺，可以跟著手上的紙一步一步模仿。看到一半也可以按「結束解答，換我自己來」，從那裡接著自己摺。</p>
+    <h3>數字方向</h3>
+    <p>預設「跟著紙翻轉」，摺過去的數字會倒過來或轉向，和真的紙一樣；想降低難度時，可以改成「永遠正著看」。</p>
+    <h3>七種玩法</h3>
+    <ul>
+      <li><b>相鄰配對</b>：把兩個數字摺到隔壁，左右或上下靠在一起都可以，兩個都要露在最上面。挑戰和大師級會同時給兩組數字，兩組都要摺到隔壁。</li>
+      <li><b>只露出</b>：摺到最上面剛好只看得到指定的那幾個數字。題目的數字會直接在紙上用紅色圈起來。</li>
+      <li><b>照圖摺</b>：照著小圖摺出一模一樣的樣子，紙轉個方向也算對。</li>
+      <li><b>數字加總</b>：摺到最上面露出的數字，加起來剛好等於題目的數字。答案通常不只一種。</li>
+      <li><b>打洞猜猜看</b>：按「下一步」一步一步看紙怎麼摺，摺好後在一個地方打洞。猜猜看攤開後，哪些數字的格子會有洞，再打開對答案。用實體紙玩時，可以用打洞機或筆尖戳洞。</li>
+      <li><b>數字迷宮</b>：從 1 開始，一格一格點到隔壁的格子，把 1 到 16 連成一條路，每格只走一次。題目會先給幾個數字，路一定要剛好經過它們。用實體紙玩時，可以在紙的背面或另一張紙上畫。</li>
+      <li><b>自由摺</b>：沒有題目，想怎麼摺就怎麼摺，適合第一次認識規則。</li>
+    </ul>
+    <h3>兩種分級</h3>
+    <p><b>題目難度</b>分成暖身、入門、進階、挑戰、大師：摺紙題依照最少要摺幾次，打洞題依照示範摺幾次，數字迷宮依照先給幾個數字。<b>輔助程度</b>分成輕鬆、標準、挑戰，每一項也可以單獨開關。</p>
+    <h3>帶領時可以這樣用</h3>
+    <ul>
+      <li>第一次玩先用「自由摺」，帶大家發現摺過去的格子會翻到背面、數字會轉向。</li>
+      <li>打開「用實體紙帶領」，投影只顯示題目，大家用手上的紙摺；摺完再按「看解答」，一步一步對照。</li>
+      <li>打洞猜猜看可以先請每個人把答案說出來或圈在紙上，再一起攤開，揭曉的那一刻最熱鬧。</li>
+      <li>摺好的人說說看自己是怎麼想的，常常會出現和解答不一樣、但也成功的方法。</li>
+      <li>網頁上每次都是整疊一起摺；實體紙如果只摺上面幾層，也可能找到其他摺法，一樣算成功。</li>
+    </ul>
+    <div class="actions" style="grid-template-columns:1fr"><button class="btn primary" data-close>開始玩</button></div>
+  </div>
+</div>
+<div class="overlay" id="winBox" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+  <div class="dialog win-card">
+    <div class="stars" id="winStars"></div>
+    <div class="big" id="winTitle">完成了！</div>
+    <p id="winText"></p>
+    <div class="actions"><button class="btn" data-close>再看一下</button><button class="btn primary" id="winNext">下一題</button></div>
+  </div>
+</div>
+<div class="confetti" id="confetti"></div>
+
+<script>
+/* ---------- 通用摺紙引擎（方形紙／三角紙） ---------- */
+const PAPERS={sq:{key:'sq',step:1,dirs:['v','h'],name:'方形紙'},tri:{key:'tri',step:2,dirs:['v','h','d','a'],name:'三角紙'}};
+let P=PAPERS.sq;
+function setPaper(k){P=PAPERS[k];}
+const TRI_QN={'1,0':[0,3,2,1],'0,0':[4,7,6,5],'1,1':[8,11,10,9],'0,1':[12,15,14,13]};
+function initState(){const f=new Array(16);
+  if(P.key==='sq'){for(let i=0;i<16;i++){const c=i%4,r=Math.floor(i/4);f[i]={v:[[c,r],[c+1,r],[c+1,r+1],[c,r+1]],z:i,m:[1,0,0,1]};}return f;}
+  for(const [q,ids] of Object.entries(TRI_QN)){const [qx,qy]=q.split(',').map(Number);const ox=2*qx,oy=2*qy,c=[ox+1,oy+1];
+    const tris=[[[ox,oy],[ox+2,oy],c],[[ox+2,oy],[ox+2,oy+2],c],[[ox,oy+2],[ox+2,oy+2],c],[[ox,oy],[ox,oy+2],c]];
+    ids.forEach((id,t)=>f[id]={v:tris[t].map(p=>p.slice()),z:id,m:[1,0,0,1]});}
+  return f;}
+const LIN={v:[-1,0,0,1],h:[1,0,0,-1],d:[0,1,1,0],a:[0,-1,-1,0]};
+const fval=(t,p)=>t==='v'?p[0]:t==='h'?p[1]:t==='d'?p[0]-p[1]:p[0]+p[1];
+function refl(t,c,p){const [x,y]=p;return t==='v'?[2*c-x,y]:t==='h'?[x,2*c-y]:t==='d'?[y+c,x-c]:[c-y,c-x];}
+const mul=(A,B)=>[A[0]*B[0]+A[1]*B[2],A[0]*B[1]+A[1]*B[3],A[2]*B[0]+A[3]*B[2],A[2]*B[1]+A[3]*B[3]];
+function side(t,c,f){let lo=false,hi=false;for(const p of f.v){const d=fval(t,p)-c;if(d<0)lo=true;if(d>0)hi=true;}return lo&&hi?0:lo?-1:1;}
+const cloneF=F=>F.map(f=>({v:f.v.map(p=>p.slice()),z:f.z,m:f.m.slice()}));
+function renorm(F){const o=F.map((f,i)=>i).sort((a,b)=>F[a].z-F[b].z);o.forEach((id,r)=>F[id].z=r);}
+function bbox(F){let a=1e9,b=1e9,c=-1e9,d=-1e9;for(const f of F)for(const [x,y] of f.v){if(x<a)a=x;if(y<b)b=y;if(x>c)c=x;if(y>d)d=y;}return [a,b,c,d];}
+const modS=x=>((x%P.step)+P.step)%P.step;
+function lines(F){const [x0,y0,x1,y1]=bbox(F);const out=[];const rng={v:[x0,x1],h:[y0,y1],d:[x0-y1,x1-y0],a:[x0+y0,x1+y1]};
+  for(const t of P.dirs){const [lo,hi]=rng[t];for(let c=lo+1;c<hi;c++){if(modS(c))continue;let ok=true,L=false,H=false;
+    for(const f of F){const s=side(t,c,f);if(s===0){ok=false;break;}if(s<0)L=true;else H=true;}if(ok&&L&&H)out.push([t,c]);}}return out;}
+function fold(F,t,c,dir){const G=cloneF(F);let zmax=0;G.forEach(f=>{if(f.z>zmax)zmax=f.z});
+  for(const f of G){if(side(t,c,f)===dir){f.v=f.v.map(p=>refl(t,c,p));f.z=zmax+1+(zmax-f.z);f.m=mul(LIN[t],f.m);}}renorm(G);return G;}
+function flipF(F){const [x0,,x1]=bbox(F);const G=cloneF(F);const s=x0+x1;for(const f of G){f.v=f.v.map(([x,y])=>[s-x,y]);f.z=-f.z;f.m=mul(LIN.v,f.m);}renorm(G);return G;}
+const slotKey=(f,dx=0,dy=0)=>f.v.map(([x,y])=>(x-dx)+','+(y-dy)).sort().join(';');
+function slots(F){const m=new Map();F.forEach((f,id)=>{const k=slotKey(f);if(!m.has(k))m.set(k,[]);m.get(k).push(id);});for(const L of m.values())L.sort((a,b)=>F[a].z-F[b].z);return m;}
+function skey(F){const [x0,y0]=bbox(F);const dx=x0-modS(x0),dy=y0-modS(y0);const m=new Map();
+  F.forEach((f,id)=>{const k=slotKey(f,dx,dy);if(!m.has(k))m.set(k,[]);m.get(k).push(id);});
+  return [...m.entries()].sort((a,b)=>a[0]<b[0]?-1:1).map(([k,L])=>k+':'+L.sort((a,b)=>F[a].z-F[b].z).map(id=>id+'.'+F[id].m.join('')).join(',')).join('|');}
+function movesOf(F){const o=[];for(const [t,c] of lines(F))o.push(t+c+'-',t+c+'+');return o;}
+function parseMove(m){return [m[0],+m.slice(1,-1),m[m.length-1]==='-'?-1:1];}
+function applyMove(F,m){if(m==='f')return flipF(F);const [t,c,d]=parseMove(m);return fold(F,t,c,d);}
+function canonView(F){const S=slots(F);let ent=[...S.entries()].map(([k,L])=>[k.split(';').map(p=>p.split(',').map(Number)),L[L.length-1]]);
+  const ks=[];for(let r=0;r<4;r++){let mx=1e9,my=1e9;ent.forEach(([vs])=>vs.forEach(([x,y])=>{if(x<mx)mx=x;if(y<my)my=y;}));
+    const dx=mx-modS(mx),dy=my-modS(my);
+    ks.push(ent.map(([vs,id])=>vs.map(([x,y])=>(x-dx)+','+(y-dy)).sort().join(';')+'='+id).sort().join('|'));
+    ent=ent.map(([vs,id])=>[vs.map(([x,y])=>[-y,x]),id]);}
+  ks.sort();return ks[0];}
+function shareEdge(a,b){const B=new Set(b.split(';'));let n=0;for(const x of a.split(';'))if(B.has(x))n++;return n>=2;}
+const topsOf=F=>[...slots(F).values()].map(L=>L[L.length-1]);
+//{PAPERS,setPaper,initState,fold,flipF,lines,movesOf,applyMove,skey,slots,bbox,canonView,shareEdge,topsOf,parseMove};
+
+const ALLDATA = {"sq":{"adj":[["0-2",1,1,"v1-"],["4-6",1,1,"v1-"],["8-10",1,1,"v1-"],["12-14",1,1,"v1-"],["1-3",1,1,"v3+"],["5-7",1,1,"v3+"],["9-11",1,1,"v3+"],["13-15",1,1,"v3+"],["0-8",1,1,"h1-"],["1-9",1,1,"h1-"],["2-10",1,1,"h1-"],["3-11",1,1,"h1-"],["4-12",1,1,"h3+"],["5-13",1,1,"h3+"],["6-14",1,1,"h3+"],["7-15",1,1,"h3+"],["0-3",2,2,"v1- v3+"],["4-7",2,2,"v1- v3+"],["8-11",2,2,"v1- v3+"],["12-15",2,2,"v1- v3+"],["1-8",2,2,"v1- h1-"],["4-13",2,2,"v1- h3+"],["0-9",2,2,"v1+ h1-"],["5-12",2,2,"v1+ h3+"],["3-8",2,2,"v2- h1-"],["2-9",2,2,"v2- h1-"],["4-15",2,2,"v2- h3+"],["5-14",2,2,"v2- h3+"],["0-11",2,2,"v2+ h1-"],["1-10",2,2,"v2+ h1-"],["7-12",2,2,"v2+ h3+"],["6-13",2,2,"v2+ h3+"],["3-10",2,2,"v3- h1-"],["6-15",2,2,"v3- h3+"],["2-11",2,2,"v3+ h1-"],["7-14",2,2,"v3+ h3+"],["2-4",2,2,"h1- v1-"],["1-7",2,2,"h1- v3+"],["0-12",2,2,"h1- h3+"],["1-13",2,2,"h1- h3+"],["2-14",2,2,"h1- h3+"],["3-15",2,2,"h1- h3+"],["0-6",2,2,"h1+ v1-"],["3-5",2,2,"h1+ v3+"],["2-12",2,2,"h2- v1-"],["6-8",2,2,"h2- v1-"],["1-15",2,2,"h2- v3+"],["5-11",2,2,"h2- v3+"],["0-14",2,2,"h2+ v1-"],["4-10",2,2,"h2+ v1-"],["3-13",2,2,"h2+ v3+"],["7-9",2,2,"h2+ v3+"],["10-12",2,2,"h3- v1-"],["9-15",2,2,"h3- v3+"],["8-14",2,2,"h3+ v1-"],["11-13",2,2,"h3+ v3+"],["0-10",3,3,"v1+ v0- h1-"],["6-12",3,3,"v1+ v0- h3+"],["2-8",3,3,"v1+ v0+ h1-"],["4-14",3,3,"v1+ v0+ h3+"],["0-7",3,3,"v1+ h1- v-1-"],["3-4",3,3,"v1+ h1- v0+"],["0-15",3,3,"v1+ h2- v-1-"],["4-11",3,3,"v1+ h2- v-1-"],["3-12",3,3,"v1+ h2- v0+"],["7-8",3,3,"v1+ h2- v0+"],["8-15",3,3,"v1+ h3- v-1-"],["11-12",3,3,"v1+ h3- v0+"],["1-11",3,3,"v3- v4- h1-"],["7-13",3,3,"v3- v4- h3+"],["3-9",3,3,"v3- v4+ h1-"],["5-15",3,3,"v3- v4+ h3+"],["0-13",3,3,"h1+ v1- h-1-"],["1-12",3,3,"h1+ v1- h0+"],["1-14",3,3,"h1+ v2- h-1-"],["2-13",3,3,"h1+ v2- h0+"],["2-15",3,3,"h1+ v3- h-1-"],["3-14",3,3,"h1+ v3- h0+"],["0-6|7-15",4,3,"h1+ v1- h-1-"],["0-2|4-14",4,3,"h3- h4- v1-"],["0-8|2-9",4,3,"v3+ v2- h1-"],["0-12|2-15",4,3,"h1+ v3- h-1-"],["0-10|3-11",4,3,"v1+ v0- h1-"],["2-8|3-15",4,3,"h1+ h0+ v1-"],["11-12|4-7",4,3,"v3- h3- v5+"],["1-3|7-13",4,3,"h3- h4- v3+"],["12-15|2-11",4,3,"v1- v3+ h1-"],["1-9|7-15",4,3,"h1+ h-1+ v3+"],["0-2|6-8",4,3,"h3+ h2- v1-"],["6-13|7-15",4,3,"v1- v2+ h3+"],["3-4|8-11",4,3,"v1+ h1- v0+"],["0-12|13-15",4,3,"v3- h1- h3+"],["0-12|11-13",4,3,"h1- h3+ v3+"],["4-7|8-15",4,3,"v1+ h3- v-1-"],["0-3|7-13",4,3,"v3- v4- h3+"],["1-8|3-15",4,3,"h3+ v1- h1-"],["11-13|3-5",4,3,"h1+ h-1- v3+"],["1-7|9-15",4,3,"h1+ h-1+ v3+"],["0-8|9-15",4,3,"h1+ h-1+ v3+"],["12-14|3-10",4,3,"v1+ v-1+ h1-"],["1-12|2-10",4,3,"h3- v1- h5+"],["1-3|12-14",4,3,"v1+ v-1- h3+"],["1-7|12-15",4,3,"v1- h1- v3+"],["0-2|8-15",4,3,"v3- h3- v4-"],["0-2|6-13",4,3,"v3+ v2+ h3+"],["3-14|5-13",4,3,"h1+ v3- h0+"],["0-12|1-11",4,3,"h1+ h0+ v3+"],["1-13|3-14",4,3,"h3- v3- h5+"],["12-15|3-4",4,3,"v1+ h1- v0+"],["0-8|2-15",4,3,"h3- v3- h4-"],["1-11|12-15",4,3,"v3- v4- h1-"],["0-3|4-12",4,3,"v3- v4- h3+"],["2-10|4-12",4,3,"h1+ h-1+ v1-"],["1-10|12-14",4,3,"v3+ v2+ h1-"],["1-8|2-14",4,3,"h3+ v1- h1-"],["10-12|3-11",4,3,"h1+ h-1+ v1-"],["3-14|4-12",4,3,"h1+ v3- h0+"],["1-12|3-11",4,3,"h3- v1- h5+"],["1-8|12-15",4,3,"v1- v3+ h1-"],["0-9|13-15",4,3,"v1+ v-1- h1-"],["0-9|2-11",4,3,"v1+ v-1- h1-"],["4-12|5-11",4,3,"h1- h2- v3+"],["0-3|11-13",4,3,"v1- h3- v2-"],["0-8|3-9",4,3,"v3- v4+ h1-"],["4-13|7-14",4,3,"v1- v3+ h3+"],["3-15|8-14",4,3,"h1- h3+ v1-"],["0-8|12-15",4,3,"v3- v4- h1-"],["12-14|4-10",4,3,"h1- h2+ v1-"],["10-12|2-4",4,3,"h1+ h-1+ v1-"],["3-12|7-8",4,3,"v1+ h2- v0+"],["0-13|2-14",4,3,"h3- v1- h4-"],["4-12|5-15",4,3,"v3- v4+ h3+"],["1-7|8-11",4,3,"v1- h1- v3+"],["4-12|7-13",4,3,"v3- v4- h3+"],["11-13|4-7",4,3,"v1- h3- v2-"],["1-9|2-15",4,3,"h3- v3- h4-"],["0-3|7-15",4,3,"v1+ v0+ h3+"],["11-12|5-7",4,3,"v1+ h3- v0+"],["12-15|3-8",5,4,"v1- h1+ h0- v3+"],["3-4|8-14",5,4,"h3- v3- h5- v4-"],["1-12|2-11",5,4,"v3- h3- v5- h4-"],["2-12|3-11",5,4,"v1+ h3- v0- h4-"],["0-8|1-14",5,4,"v3+ h3- v2- h4-"],["0-13|7-14",5,4,"v3- h1+ v5- h0+"],["0-12|3-13",5,4,"v3+ h3- v2- h5+"],["0-2|9-15",5,4,"v1- h3- v3- h4-"],["0-2|11-13",5,4,"h3- v1+ v-1- h5+"],["0-13|6-15",5,4,"v3+ h1+ v1- h-1-"],["12-14|3-8",5,4,"h1+ v3- h0- v4-"],["1-8|7-15",5,4,"v1- h1+ h-1- v2-"],["13-15|2-4",5,4,"h1- v1+ v-1- h2-"],["0-8|7-14",5,4,"v3- h1+ h-1- v5+"],["0-12|7-15",5,4,"h3- v3- h5- v5+"],["13-15|3-4",5,4,"v3- h1- v5- h2-"],["2-13|4-12",5,4,"v3+ h1+ v2- h0+"],["1-3|7-8",5,4,"v1+ h3+ h2- v0+"],["11-13|3-4",5,4,"v1- h3- h5- v3+"],["0-7|11-13",5,4,"h3- v1+ h5- v0+"],["1-3|7-12",5,4,"h3- v1+ h4- v-1-"],["1-3|8-14",5,4,"h3- v3- v5- h4-"],["11-12|2-4",5,4,"v3- h3- h5- v4-"],["2-13|3-11",5,4,"v1- h3- v2- h5+"],["1-3|12-15",5,4,"v3- h1+ v5- h-1-"],["3-11|5-12",5,4,"v1- h1+ h-1- v3+"],["0-7|12-14",5,4,"v1+ h1- v-1- h3+"],["0-2|4-15",5,4,"h3- v3- h4- v5+"],["1-14|7-15",5,4,"v1- h1+ v2- h-1-"],["0-6|13-15",5,4,"v3+ h1+ v1- h-1-"],["0-8|1-15",5,4,"v3- h3- v4- h5+"],["1-7|8-15",5,4,"v1- h1+ h-1- v2-"],["3-10|4-12",5,4,"v3- h1+ h-1- v4-"],["0-7|11-12",5,4,"v1+ h1- h3- v0+"],["3-13|4-12",5,4,"v3- h1+ v4- h-1-"],["0-11|12-15",5,4,"v1+ h1+ h0- v0+"],["0-8|3-14",5,4,"h1+ v3+ h-1- v1-"],["2-15|4-13",5,4,"h1- v1+ v-1- h2-"],["0-3|12-14",5,4,"v1+ h3- v-1- h4-"],["0-3|13-15",5,4,"v3- h3- v5- h5+"],["0-9|2-15",5,4,"v1- h3- v3- h4-"],["0-12|6-13",5,4,"v3+ h1- v2- h2-"],["3-14|5-12",5,4,"v1- h1+ v3- h0+"],["0-2|12-15",5,4,"v1+ h1+ v-1- h0+"],["12-15|4-11",5,4,"v3- h1- h2- v4-"],["11-12|3-5",5,4,"v1- h1+ h-1- v3+"],["2-11|4-12",5,4,"v3- h3- h5- v4-"],["13-15|4-11",5,4,"v1+ h1- h2- v-1-"],["1-7|11-12",5,4,"h1+ v1+ h-1- v-1-"],["0-3|7-12",5,4,"v1+ h3- h4- v-1-"],["1-12|3-10",5,4,"v3+ h3- v1- h5+"],["2-12|3-15",5,4,"v1- h1+ v2- h0+"],["0-12|1-10",5,4,"v3+ h3+ v2- h2+"],["0-12|2-13",5,4,"v3- h3- v4- h4-"],["1-8|3-14",5,4,"h3- v3- v5- h4-"],["12-14|3-5",5,4,"v1- h1+ v3- h0+"],["0-9|7-15",5,4,"v1- h3- h5- v2-"],["2-15|4-12",5,4,"h3- v3+ h5- v2+"],["0-3|4-10",5,4,"v3+ h3+ h2- v2+"],["1-8|2-15",5,4,"v1+ h3- v-1- h5+"]],"ex":[["0,1,2,3,8,9,10,11,12,13,14,15",1,1,"h1-"],["8,9,10,11,12,13,14,15",1,1,"h2+"],["0,1,2,3,4,5,6,7",1,1,"h2-"],["1,2,3,5,6,7,9,10,11,13,14,15",1,1,"v1+"],["0,1,4,5,8,9,12,13",1,1,"v2-"],["2,3,6,7,10,11,14,15",1,1,"v2+"],["4,5,6,7,8,9,10,11,12,13,14,15",1,1,"h1+"],["0,1,2,4,5,6,8,9,10,12,13,14",1,1,"v3-"],["0,1,2,3,4,5,6,7,8,9,10,11",1,1,"h3-"],["0,1,3,4,5,7,8,9,11,12,13,15",1,1,"v3+"],["0,1,2,3,4,5,6,7,12,13,14,15",1,1,"h3+"],["0,2,3,4,6,7,8,10,11,12,14,15",1,1,"v1-"],["0,2,3,9,10,11,13,14,15",2,2,"v1+ h1-"],["4,5,6,7,8,9,10,11",2,2,"h1- h3-"],["0,1,2,3,8,9,10,11",2,2,"h1+ h-1+"],["0,2,3,4,6,7,8,10,11",2,2,"v1+ h3-"],["1,2,3,8,10,11,12,14,15",2,2,"v1- h1-"],["4,5,6,7,12,13,14,15",2,2,"h1- h2-"],["0,2,3,4,6,7,8,14,15",2,2,"h3+ v1-"],["0,1,3,8,9,10,12,13,14",2,2,"v3- h1-"],["2,3,4,8,10,11,12,14,15",2,2,"h1- v1-"],["0,1,2,4,5,6,12,13,15",2,2,"v3- h3+"],["0,1,4,5",2,2,"v2+ h2-"],["2,3,6,7",2,2,"v2- h2-"],["8,9,10,11",2,2,"h2- h3-"],["0,1,8,9,12,13",2,2,"h1+ v2-"],["1,2,3,9,10,11,13,14,15",2,2,"h1+ v1+"],["0,2,3,4,6,7",2,2,"v1+ h2-"],["6,7,10,11,14,15",2,2,"v2- h1+"],["4,5,6,8,9,10,12,13,14",2,2,"v3+ h1+"],["0,1,3,4,5,7,12,13,14",2,2,"v3+ h3+"],["2,3,6,7,8,12",2,2,"h2- v1-"],["1,2,5,6,9,10,13,14",2,2,"v1- v3-"],["0,4,8,12",2,2,"v2+ v1-"],["0,1,3,4,5,7,11,12,13",2,2,"h3+ v3+"],["2,3,10,11,14,15",2,2,"h1+ v2+"],["0,1,7,8,9,11,12,13,15",2,2,"h1- v3+"],["3,7,8,9,12,13",2,2,"h2+ v3+"],["8,10,11,12,14,15",2,2,"v1+ h2+"],["2,6,10,14",2,2,"v2- v3-"],["2,3,8,9,12,13",2,2,"v2- h1-"],["2,3,6,7,14,15",2,2,"h3- v2+"],["4,6,7,8,10,11,12,14,15",2,2,"v1+ h1+"],["0,2,4,6,8,10,12,14",2,2,"v1+ v-1+"],["10,11,14,15",2,2,"v2- h2+"],["1,5,9,13",2,2,"v2+ v1+"],["0,1,2,8,9,11,12,13,15",2,2,"v3+ h1-"],["0,6,7,8,10,11,12,14,15",2,2,"h1+ v1-"],["1,2,3,5,6,7,12,14,15",2,2,"v1+ h3+"],["0,1,2,4,5,6,8,9,10",2,2,"v3+ h3-"],["2,3,6,7,10,11",2,2,"v2- h3-"],["0,1,2,3,12,13,14,15",2,2,"h1- h3+"],["3,4,5,8,9,11,12,13,15",2,2,"h1+ v3+"],["0,1,4,5,8,9",2,2,"v2+ h3-"],["5,6,7,9,10,11,13,14,15",2,2,"v1- h1+"],["8,9,10,12,13,14",2,2,"v3+ h2+"],["0,1,2,4,5,6,12,13,14",2,2,"h3- v3-"],["3,7,12",3,3,"v2+ h3- v1-"],["11,15",3,3,"v2- v3- h2+"],["0,1,3,12,13,15",3,3,"v3- h1- h3+"],["8,10,11",3,3,"v1+ h2- h3-"],["4,6,7,8,10,11",3,3,"v1+ h1- h3-"],["0,1,15",3,3,"h2- v3- h3+"],["8,9,11",3,3,"v3- h2- h3-"],["2,6,13",3,3,"v2+ h3- v1+"],["4,5,7,8,9,11",3,3,"v3- h1- h3-"],["4,5,12,13",3,3,"h1- h2+ v2-"],["2,3,9,11,13,15",3,3,"v1- v2- h1-"],["12,14,15",3,3,"v1+ h2- h3+"],["0,6,8,10,12,14",3,3,"v3+ h1- v2+"],["3,10,14",3,3,"v2- v3- h1-"],["0,1",3,3,"v2+ h2+ h1-"],["1,3,5,7,13,14",3,3,"v3+ h3- v1+"],["0,2,3,6,7,8",3,3,"h3+ h2- v1-"],["1,3,5,7,9,15",3,3,"v1- h3- v3+"],["2,3,12,13",3,3,"h1+ v2- h0+"],["0,4",3,3,"v2+ v1+ h2-"],["2,3,6,7,13,15",3,3,"v1- v2+ h3+"],["8,9",3,3,"v2+ h2- h3-"],["1,5",3,3,"v2+ v1- h2-"],["0,1,2,8,9,15",3,3,"h3- v3- h4-"],["0,9,13",3,3,"v2+ v1+ h1-"],["0,2,4,6,8,15",3,3,"v3- h3- v4-"],["0,1,2",3,3,"v3+ h2+ h1-"],["0,1,4,5,12,14",3,3,"v3+ v2- h3+"],["3,4,5,12,13,14",3,3,"h1+ v3- h0+"],["1,2,5,6,13,15",3,3,"v3- h3- v5-"],["2,3,4",3,3,"h2+ h1- v1-"],["0,1,7,8,9,11",3,3,"h1- v3- h3-"],["1,2,3,8,10,11",3,3,"v1- h1+ h-1+"],["2,6,8,12",3,3,"v3+ h2- v1-"],["1,2,3,12,14,15",3,3,"h1+ v1- h0+"],["7,8,9",3,3,"h2+ v3- h1+"],["0,6,7,8,14,15",3,3,"h1+ h-1- v1-"],["8,14,15",3,3,"h2- h3+ v1-"],["3,4,5",3,3,"h2+ h1+ v3+"],["1,2,5,6,13,14",3,3,"h3- v1- v3-"],["0,3,8,9,12,13",3,3,"v3- v4+ h1-"],["0,4,13",3,3,"v2+ v1- h3+"],["1,3,8,10,12,14",3,3,"v1+ v-1+ h1-"],["6,10,14",3,3,"v2- v3+ h1+"],["0,4,8",3,3,"v2+ v1+ h3-"],["2,4,8,10",4,4,"h1- v1+ v-1- h3-"],["0",4,4,"v2+ v1+ h2+ h1-"],["7,15",4,4,"h1- h2+ v2- v3+"],["2,3,8,15",4,4,"v1+ h3+ v0- h2+"],["2,3,11,12",4,4,"v1+ h3- v0- h4-"],["2,4,11,12",4,4,"v3- h3- h5- v4-"],["3,5,11,12",4,4,"v1- h1+ h-1- v3+"],["6,8,12,14",4,4,"h1- h2- v1+ v-1+"],["1,7,11,12",4,4,"h1+ v1+ h-1- v-1-"],["0,1,11,12",4,4,"v3- h3+ v4- h1-"],["4,7,14,15",4,4,"v1+ v0- h1- h2-"],["0,11,13,15",4,4,"h1+ v1+ h0- v0+"],["0,3,4,14",4,4,"h3- v3+ h4- v1-"],["2,13",4,4,"h1+ v2- h0- v3-"],["2,3,8,11",4,4,"v1+ v0- h3- h5+"],["4,6,8,15",4,4,"v3- h3- v4+ h5-"],["1,7,8,11",4,4,"v1- h1- v3- h3-"],["3,8,12,14",4,4,"h1+ v3- h0- v4-"],["5,7,14,15",4,4,"v1- v2- h3- h5-"],["1,3",4,4,"v1- v2+ h2+ h1-"],["0,10,14",4,4,"v1+ v-1- v0- h1-"],["4,7,12,15",4,4,"h1- h2+ v1- v3+"],["0,6,13,15",4,4,"v3+ h1+ v1- h-1-"],["14",4,4,"v2- v3+ h2- h3+"],["2,4,8,15",4,4,"h1+ v3- h-1- v5+"],["1,3,8,14",4,4,"h3- v3- v5- h4-"],["3,4,11,13",4,4,"v1- h3- h5- v3+"],["3,5,14,15",4,4,"v1- h1- v2- h3+"],["2,4,8,14",4,4,"v3+ h1- h3- v2+"],["4,6,8,14",4,4,"h3- v3- v5- h5-"],["3,4,13,15",4,4,"v3- h1- v5- h2-"],["1,7,11,13",4,4,"v1- h1- h3- v2-"],["1,2,8,15",4,4,"v1+ h3- v-1- h5+"],["1,3,5,15",4,4,"v1+ h3- h4- v0+"],["3,5,13,14",4,4,"h1+ v3- h0- v5-"],["4,7,8,11",4,4,"v1- v3- h1- h3-"],["0,3,8,14",4,4,"h1+ v3+ h-1- v1-"],["4,5,15",4,4,"h1- h2+ h1+ v3+"],["1,3,7,13",4,4,"v1- h3- h4- v3+"],["0,4,14",4,4,"v1+ v-1- v0+ h3+"],["1,3,7,8",4,4,"v1+ h3+ h2- v0+"],["1,2,9,15",4,4,"h3- v3- h4+ v5-"],["2",4,4,"v2- v3+ h2+ h1-"],["1,3,13,15",4,4,"v1- v2+ h1- h3+"],["0,10,12,14",4,4,"v3- h1+ h0- v5+"],["7,13",5,5,"v1- v2+ v1- h3- h5-"],["3,9",5,5,"v1- v2+ v1- h3- h5+"],["6,12",5,5,"v1+ v-1- v0- h3- h5-"],["0,10",5,5,"v1+ v-1- v0- h1+ h-1+"],["5,15",5,5,"v1- v2+ v1- h1- h2-"],["1,11",5,5,"v1- v2+ v1- h1+ h-1+"],["2,8",5,5,"v1+ v-1- v0- h3- h5+"],["4,14",5,5,"v1+ v-1- v0- h1- h2-"]],"vw":[["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=1|1,0;1,1;2,0;2,1=4|1,1;1,2;2,1;2,2=5|2,0;2,1;3,0;3,1=8|2,1;2,2;3,1;3,2=9|3,0;3,1;4,0;4,1=12|3,1;3,2;4,1;4,2=13",1,1,"v2-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=4|0,2;0,3;1,2;1,3=12|1,0;1,1;2,0;2,1=1|1,1;1,2;2,1;2,2=5|1,2;1,3;2,2;2,3=13|2,0;2,1;3,0;3,1=2|2,1;2,2;3,1;3,2=6|2,2;2,3;3,2;3,3=14|3,0;3,1;4,0;4,1=3|3,1;3,2;4,1;4,2=7|3,2;3,3;4,2;4,3=15",1,1,"h3+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=4|1,0;1,1;2,0;2,1=1|1,1;1,2;2,1;2,2=5|2,0;2,1;3,0;3,1=2|2,1;2,2;3,1;3,2=6|3,0;3,1;4,0;4,1=3|3,1;3,2;4,1;4,2=7",1,1,"f h2-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=1|0,2;0,3;1,2;1,3=2|1,0;1,1;2,0;2,1=4|1,1;1,2;2,1;2,2=5|1,2;1,3;2,2;2,3=6|2,0;2,1;3,0;3,1=8|2,1;2,2;3,1;3,2=9|2,2;2,3;3,2;3,3=10|3,0;3,1;4,0;4,1=12|3,1;3,2;4,1;4,2=13|3,2;3,3;4,2;4,3=14",1,1,"v3-"],["0,0;0,1;1,0;1,1=13|0,1;0,2;1,1;1,2=14|0,2;0,3;1,2;1,3=15|1,0;1,1;2,0;2,1=9|1,1;1,2;2,1;2,2=10|1,2;1,3;2,2;2,3=11|2,0;2,1;3,0;3,1=5|2,1;2,2;3,1;3,2=6|2,2;2,3;3,2;3,3=7|3,0;3,1;4,0;4,1=1|3,1;3,2;4,1;4,2=2|3,2;3,3;4,2;4,3=3",1,1,"f v3-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=4|0,2;0,3;1,2;1,3=8|1,0;1,1;2,0;2,1=1|1,1;1,2;2,1;2,2=5|1,2;1,3;2,2;2,3=9|2,0;2,1;3,0;3,1=2|2,1;2,2;3,1;3,2=6|2,2;2,3;3,2;3,3=10|3,0;3,1;4,0;4,1=3|3,1;3,2;4,1;4,2=7|3,2;3,3;4,2;4,3=11",1,1,"f h3-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=1|0,2;0,3;1,2;1,3=2|0,3;0,4;1,3;1,4=3|1,0;1,1;2,0;2,1=4|1,1;1,2;2,1;2,2=5|1,2;1,3;2,2;2,3=6|1,3;1,4;2,3;2,4=7|2,0;2,1;3,0;3,1=12|2,1;2,2;3,1;3,2=13|2,2;2,3;3,2;3,3=14|2,3;2,4;3,3;3,4=15",1,1,"f h3+"],["0,0;0,1;1,0;1,1=11|0,1;0,2;1,1;1,2=10|0,2;0,3;1,2;1,3=9|0,3;0,4;1,3;1,4=8|1,0;1,1;2,0;2,1=15|1,1;1,2;2,1;2,2=14|1,2;1,3;2,2;2,3=13|1,3;1,4;2,3;2,4=12",1,1,"f h2+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=8|0,2;0,3;1,2;1,3=12|1,0;1,1;2,0;2,1=1|1,1;1,2;2,1;2,2=9|1,2;1,3;2,2;2,3=13|2,0;2,1;3,0;3,1=2|2,1;2,2;3,1;3,2=10|2,2;2,3;3,2;3,3=14|3,0;3,1;4,0;4,1=3|3,1;3,2;4,1;4,2=11|3,2;3,3;4,2;4,3=15",1,1,"h1-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=4|0,2;0,3;1,2;1,3=8|0,3;0,4;1,3;1,4=12|1,0;1,1;2,0;2,1=2|1,1;1,2;2,1;2,2=6|1,2;1,3;2,2;2,3=10|1,3;1,4;2,3;2,4=14|2,0;2,1;3,0;3,1=3|2,1;2,2;3,1;3,2=7|2,2;2,3;3,2;3,3=11|2,3;2,4;3,3;3,4=15",1,1,"v1-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=1|0,2;0,3;1,2;1,3=2|0,3;0,4;1,3;1,4=3|1,0;1,1;2,0;2,1=8|1,1;1,2;2,1;2,2=9|1,2;1,3;2,2;2,3=10|1,3;1,4;2,3;2,4=11|2,0;2,1;3,0;3,1=12|2,1;2,2;3,1;3,2=13|2,2;2,3;3,2;3,3=14|2,3;2,4;3,3;3,4=15",1,1,"f h1-"],["0,0;0,1;1,0;1,1=14|0,1;0,2;1,1;1,2=15|1,0;1,1;2,0;2,1=10|1,1;1,2;2,1;2,2=11|2,0;2,1;3,0;3,1=6|2,1;2,2;3,1;3,2=7|3,0;3,1;4,0;4,1=2|3,1;3,2;4,1;4,2=3",1,1,"f v2-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=1|0,2;0,3;1,2;1,3=2|0,3;0,4;1,3;1,4=3|1,0;1,1;2,0;2,1=4|1,1;1,2;2,1;2,2=5|1,2;1,3;2,2;2,3=6|1,3;1,4;2,3;2,4=7",1,1,"h2-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=4|0,2;0,3;1,2;1,3=8|0,3;0,4;1,3;1,4=12|1,0;1,1;2,0;2,1=1|1,1;1,2;2,1;2,2=5|1,2;1,3;2,2;2,3=9|1,3;1,4;2,3;2,4=13|2,0;2,1;3,0;3,1=2|2,1;2,2;3,1;3,2=6|2,2;2,3;3,2;3,3=10|2,3;2,4;3,3;3,4=14",1,1,"f v1+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=4|0,2;0,3;1,2;1,3=8|0,3;0,4;1,3;1,4=12|1,0;1,1;2,0;2,1=1|1,1;1,2;2,1;2,2=5|1,2;1,3;2,2;2,3=9|1,3;1,4;2,3;2,4=13|2,0;2,1;3,0;3,1=3|2,1;2,2;3,1;3,2=7|2,2;2,3;3,2;3,3=11|2,3;2,4;3,3;3,4=15",1,1,"v3+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=2|0,2;0,3;1,2;1,3=3|1,0;1,1;2,0;2,1=4|1,1;1,2;2,1;2,2=6|1,2;1,3;2,2;2,3=7|2,0;2,1;3,0;3,1=8|2,1;2,2;3,1;3,2=10|2,2;2,3;3,2;3,3=11|3,0;3,1;4,0;4,1=12|3,1;3,2;4,1;4,2=14|3,2;3,3;4,2;4,3=15",1,1,"f v3+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=1|0,2;0,3;1,2;1,3=3|1,0;1,1;2,0;2,1=4|1,1;1,2;2,1;2,2=5|1,2;1,3;2,2;2,3=7|2,0;2,1;3,0;3,1=8|2,1;2,2;3,1;3,2=9|2,2;2,3;3,2;3,3=11|3,0;3,1;4,0;4,1=12|3,1;3,2;4,1;4,2=13|3,2;3,3;4,2;4,3=15",1,1,"f v1-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=1|0,2;0,3;1,2;1,3=2|0,3;0,4;1,3;1,4=3|1,0;1,1;2,0;2,1=4|1,1;1,2;2,1;2,2=5|1,2;1,3;2,2;2,3=6|1,3;1,4;2,3;2,4=7|2,0;2,1;3,0;3,1=8|2,1;2,2;3,1;3,2=9|2,2;2,3;3,2;3,3=10|2,3;2,4;3,3;3,4=11",1,1,"h3-"],["0,0;0,1;1,0;1,1=14|0,1;0,2;1,1;1,2=10|0,2;0,3;1,2;1,3=6|0,3;0,4;1,3;1,4=2|1,0;1,1;2,0;2,1=15|1,1;1,2;2,1;2,2=11|1,2;1,3;2,2;2,3=7|1,3;1,4;2,3;2,4=3",1,1,"v2+"],["0,0;0,1;1,0;1,1=13|0,1;0,2;1,1;1,2=9|0,2;0,3;1,2;1,3=5|0,3;0,4;1,3;1,4=1|1,0;1,1;2,0;2,1=14|1,1;1,2;2,1;2,2=10|1,2;1,3;2,2;2,3=6|1,3;1,4;2,3;2,4=2|2,0;2,1;3,0;3,1=15|2,1;2,2;3,1;3,2=11|2,2;2,3;3,2;3,3=7|2,3;2,4;3,3;3,4=3",1,1,"v1+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=4|0,2;0,3;1,2;1,3=8|0,3;0,4;1,3;1,4=12|1,0;1,1;2,0;2,1=1|1,1;1,2;2,1;2,2=5|1,2;1,3;2,2;2,3=9|1,3;1,4;2,3;2,4=13",1,1,"f v2+"],["0,0;0,1;1,0;1,1=11|0,1;0,2;1,1;1,2=15|1,0;1,1;2,0;2,1=10|1,1;1,2;2,1;2,2=14|2,0;2,1;3,0;3,1=9|2,1;2,2;3,1;3,2=13|3,0;3,1;4,0;4,1=8|3,1;3,2;4,1;4,2=12",1,1,"h2+"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=13|0,2;0,3;1,2;1,3=14|0,3;0,4;1,3;1,4=15|1,0;1,1;2,0;2,1=8|1,1;1,2;2,1;2,2=9|1,2;1,3;2,2;2,3=10|1,3;1,4;2,3;2,4=11|2,0;2,1;3,0;3,1=4|2,1;2,2;3,1;3,2=5|2,2;2,3;3,2;3,3=6|2,3;2,4;3,3;3,4=7",1,1,"f h1+"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=8|0,2;0,3;1,2;1,3=4|1,0;1,1;2,0;2,1=13|1,1;1,2;2,1;2,2=9|1,2;1,3;2,2;2,3=5|2,0;2,1;3,0;3,1=14|2,1;2,2;3,1;3,2=10|2,2;2,3;3,2;3,3=6|3,0;3,1;4,0;4,1=15|3,1;3,2;4,1;4,2=11|3,2;3,3;4,2;4,3=7",1,1,"h1+"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=8|1,0;1,1;2,0;2,1=2|1,1;1,2;2,1;2,2=6|2,0;2,1;3,0;3,1=3|2,1;2,2;3,1;3,2=7",2,2,"f h2- v3+"],["0,0;0,1;1,0;1,1=11|0,1;0,2;1,1;1,2=15|1,0;1,1;2,0;2,1=9|1,1;1,2;2,1;2,2=13|2,0;2,1;3,0;3,1=8|2,1;2,2;3,1;3,2=12",2,2,"f v1+ h2+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=4|1,0;1,1;2,0;2,1=1|1,1;1,2;2,1;2,2=5|2,0;2,1;3,0;3,1=15|2,1;2,2;3,1;3,2=11",2,2,"f h2- v1-"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=14|0,2;0,3;1,2;1,3=15|1,0;1,1;2,0;2,1=8|1,1;1,2;2,1;2,2=10|1,2;1,3;2,2;2,3=11|2,0;2,1;3,0;3,1=1|2,1;2,2;3,1;3,2=2|2,2;2,3;3,2;3,3=3",2,2,"v1- h1-"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=13|0,2;0,3;1,2;1,3=14|0,3;0,4;1,3;1,4=15",2,2,"h2- h3+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=1|0,2;0,3;1,2;1,3=2|0,3;0,4;1,3;1,4=3|1,0;1,1;2,0;2,1=12|1,1;1,2;2,1;2,2=13|1,2;1,3;2,2;2,3=14|1,3;1,4;2,3;2,4=15",2,2,"h1+ h0+"],["0,0;0,1;1,0;1,1=13|0,1;0,2;1,1;1,2=14|0,2;0,3;1,2;1,3=15|1,0;1,1;2,0;2,1=5|1,1;1,2;2,1;2,2=6|1,2;1,3;2,2;2,3=7|2,0;2,1;3,0;3,1=1|2,1;2,2;3,1;3,2=2|2,2;2,3;3,2;3,3=3",2,2,"h3- v1+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=1|0,2;0,3;1,2;1,3=2|1,0;1,1;2,0;2,1=4|1,1;1,2;2,1;2,2=5|1,2;1,3;2,2;2,3=6|2,0;2,1;3,0;3,1=12|2,1;2,2;3,1;3,2=13|2,2;2,3;3,2;3,3=15",2,2,"v3- h3+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=4|0,2;0,3;1,2;1,3=8|1,0;1,1;2,0;2,1=1|1,1;1,2;2,1;2,2=5|1,2;1,3;2,2;2,3=9",2,2,"f v2- h3-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=12|1,0;1,1;2,0;2,1=1|1,1;1,2;2,1;2,2=13|2,0;2,1;3,0;3,1=2|2,1;2,2;3,1;3,2=14|3,0;3,1;4,0;4,1=3|3,1;3,2;4,1;4,2=15",2,2,"h1- h3+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=2|0,2;0,3;1,2;1,3=3|1,0;1,1;2,0;2,1=4|1,1;1,2;2,1;2,2=6|1,2;1,3;2,2;2,3=7|2,0;2,1;3,0;3,1=8|2,1;2,2;3,1;3,2=14|2,2;2,3;3,2;3,3=15",2,2,"f h3+ v3+"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=14|0,2;0,3;1,2;1,3=15|1,0;1,1;2,0;2,1=5|1,1;1,2;2,1;2,2=6|1,2;1,3;2,2;2,3=7|2,0;2,1;3,0;3,1=1|2,1;2,2;3,1;3,2=2|2,2;2,3;3,2;3,3=3",2,2,"f v3- h3+"],["0,0;0,1;1,0;1,1=10|0,1;0,2;1,1;1,2=14|1,0;1,1;2,0;2,1=9|1,1;1,2;2,1;2,2=13|2,0;2,1;3,0;3,1=8|2,1;2,2;3,1;3,2=12",2,2,"v3+ h2+"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=13|0,2;0,3;1,2;1,3=14|0,3;0,4;1,3;1,4=15|1,0;1,1;2,0;2,1=4|1,1;1,2;2,1;2,2=5|1,2;1,3;2,2;2,3=6|1,3;1,4;2,3;2,4=7",2,2,"h1- h2-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=1|0,2;0,3;1,2;1,3=2|0,3;0,4;1,3;1,4=3|1,0;1,1;2,0;2,1=8|1,1;1,2;2,1;2,2=9|1,2;1,3;2,2;2,3=10|1,3;1,4;2,3;2,4=11",2,2,"h3- h5+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=8|0,2;0,3;1,2;1,3=12|1,0;1,1;2,0;2,1=1|1,1;1,2;2,1;2,2=9|1,2;1,3;2,2;2,3=13|2,0;2,1;3,0;3,1=2|2,1;2,2;3,1;3,2=10|2,2;2,3;3,2;3,3=14",2,2,"h1+ v3-"],["0,0;0,1;1,0;1,1=14|0,1;0,2;1,1;1,2=10|0,2;0,3;1,2;1,3=2|1,0;1,1;2,0;2,1=15|1,1;1,2;2,1;2,2=11|1,2;1,3;2,2;2,3=3",2,2,"f h1+ v2-"],["0,0;0,1;1,0;1,1=13|0,1;0,2;1,1;1,2=15|1,0;1,1;2,0;2,1=9|1,1;1,2;2,1;2,2=11|2,0;2,1;3,0;3,1=5|2,1;2,2;3,1;3,2=7|3,0;3,1;4,0;4,1=1|3,1;3,2;4,1;4,2=3",2,2,"v1- v2-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=4|0,2;0,3;1,2;1,3=12|1,0;1,1;2,0;2,1=2|1,1;1,2;2,1;2,2=6|1,2;1,3;2,2;2,3=10|2,0;2,1;3,0;3,1=3|2,1;2,2;3,1;3,2=7|2,2;2,3;3,2;3,3=11",2,2,"f h3- v3+"],["0,0;0,1;1,0;1,1=11|0,1;0,2;1,1;1,2=10|0,2;0,3;1,2;1,3=9|0,3;0,4;1,3;1,4=8",2,2,"h2- h3-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=4|0,2;0,3;1,2;1,3=8|1,0;1,1;2,0;2,1=1|1,1;1,2;2,1;2,2=5|1,2;1,3;2,2;2,3=9|2,0;2,1;3,0;3,1=3|2,1;2,2;3,1;3,2=7|2,2;2,3;3,2;3,3=11",2,2,"v3- h3-"],["0,0;0,1;1,0;1,1=11|0,1;0,2;1,1;1,2=15|1,0;1,1;2,0;2,1=10|1,1;1,2;2,1;2,2=14|2,0;2,1;3,0;3,1=9|2,1;2,2;3,1;3,2=13",2,2,"v1- h2+"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=13|0,2;0,3;1,2;1,3=15|1,0;1,1;2,0;2,1=8|1,1;1,2;2,1;2,2=9|1,2;1,3;2,2;2,3=11|2,0;2,1;3,0;3,1=4|2,1;2,2;3,1;3,2=5|2,2;2,3;3,2;3,3=7",2,2,"v3- h1+"],["0,0;0,1;1,0;1,1=2|0,1;0,2;1,1;1,2=6|1,0;1,1;2,0;2,1=3|1,1;1,2;2,1;2,2=7",2,2,"f v2+ h2-"],["0,0;0,1;1,0;1,1=13|0,1;0,2;1,1;1,2=14|0,2;0,3;1,2;1,3=15|1,0;1,1;2,0;2,1=9|1,1;1,2;2,1;2,2=10|1,2;1,3;2,2;2,3=11|2,0;2,1;3,0;3,1=1|2,1;2,2;3,1;3,2=2|2,2;2,3;3,2;3,3=3",2,2,"h1+ v1+"],["0,0;0,1;1,0;1,1=4|0,1;0,2;1,1;1,2=5|0,2;0,3;1,2;1,3=6|0,3;0,4;1,3;1,4=7",2,2,"h2+ h1+"],["0,0;0,1;1,0;1,1=1|0,1;0,2;1,1;1,2=2|0,2;0,3;1,2;1,3=3|1,0;1,1;2,0;2,1=5|1,1;1,2;2,1;2,2=6|1,2;1,3;2,2;2,3=7",2,2,"v1- h2-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=9|0,2;0,3;1,2;1,3=13|1,0;1,1;2,0;2,1=2|1,1;1,2;2,1;2,2=10|1,2;1,3;2,2;2,3=14|2,0;2,1;3,0;3,1=3|2,1;2,2;3,1;3,2=11|2,2;2,3;3,2;3,3=15",2,2,"f v3- h1-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=1|0,2;0,3;1,2;1,3=15|1,0;1,1;2,0;2,1=4|1,1;1,2;2,1;2,2=5|1,2;1,3;2,2;2,3=11",2,2,"h2- v3+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=1|1,0;1,1;2,0;2,1=4|1,1;1,2;2,1;2,2=5",2,2,"v2+ h2-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=4|0,2;0,3;1,2;1,3=12|1,0;1,1;2,0;2,1=1|1,1;1,2;2,1;2,2=5|1,2;1,3;2,2;2,3=13",2,2,"h3- v2-"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=13|1,0;1,1;2,0;2,1=7|1,1;1,2;2,1;2,2=6|2,0;2,1;3,0;3,1=3|2,1;2,2;3,1;3,2=2",2,2,"v2+ h3+"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=8|0,2;0,3;1,2;1,3=4|1,0;1,1;2,0;2,1=14|1,1;1,2;2,1;2,2=10|1,2;1,3;2,2;2,3=6|2,0;2,1;3,0;3,1=15|2,1;2,2;3,1;3,2=11|2,2;2,3;3,2;3,3=7",2,2,"f v3- h1+"],["0,0;0,1;1,0;1,1=13|0,1;0,2;1,1;1,2=5|0,2;0,3;1,2;1,3=1|1,0;1,1;2,0;2,1=14|1,1;1,2;2,1;2,2=6|1,2;1,3;2,2;2,3=2|2,0;2,1;3,0;3,1=15|2,1;2,2;3,1;3,2=7|2,2;2,3;3,2;3,3=3",2,2,"f h3- v3-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=8|0,2;0,3;1,2;1,3=12|1,0;1,1;2,0;2,1=1|1,1;1,2;2,1;2,2=9|1,2;1,3;2,2;2,3=13|2,0;2,1;3,0;3,1=3|2,1;2,2;3,1;3,2=10|2,2;2,3;3,2;3,3=14",2,2,"f v1+ h1-"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=8|0,2;0,3;1,2;1,3=4|1,0;1,1;2,0;2,1=13|1,1;1,2;2,1;2,2=9|1,2;1,3;2,2;2,3=5|2,0;2,1;3,0;3,1=15|2,1;2,2;3,1;3,2=11|2,2;2,3;3,2;3,3=3",2,2,"h1+ v3+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=8|0,2;0,3;1,2;1,3=12|1,0;1,1;2,0;2,1=1|1,1;1,2;2,1;2,2=9|1,2;1,3;2,2;2,3=13|2,0;2,1;3,0;3,1=7|2,1;2,2;3,1;3,2=11|2,2;2,3;3,2;3,3=15",2,2,"h1- v3+"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=8|0,2;0,3;1,2;1,3=4|1,0;1,1;2,0;2,1=13|1,1;1,2;2,1;2,2=9|1,2;1,3;2,2;2,3=5|2,0;2,1;3,0;3,1=15|2,1;2,2;3,1;3,2=11|2,2;2,3;3,2;3,3=7",2,2,"f v1+ h1+"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=8|0,2;0,3;1,2;1,3=1|1,0;1,1;2,0;2,1=14|1,1;1,2;2,1;2,2=10|1,2;1,3;2,2;2,3=2|2,0;2,1;3,0;3,1=15|2,1;2,2;3,1;3,2=11|2,2;2,3;3,2;3,3=3",2,2,"f v3+ h1-"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=13|0,2;0,3;1,2;1,3=14|1,0;1,1;2,0;2,1=8|1,1;1,2;2,1;2,2=9|1,2;1,3;2,2;2,3=10|2,0;2,1;3,0;3,1=4|2,1;2,2;3,1;3,2=5|2,2;2,3;3,2;3,3=6",2,2,"f v1- h1+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=1|0,2;0,3;1,2;1,3=2|1,0;1,1;2,0;2,1=8|1,1;1,2;2,1;2,2=9|1,2;1,3;2,2;2,3=10|2,0;2,1;3,0;3,1=12|2,1;2,2;3,1;3,2=13|2,2;2,3;3,2;3,3=14",2,2,"f h1+ v1+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=1|1,0;1,1;2,0;2,1=8|1,1;1,2;2,1;2,2=9|2,0;2,1;3,0;3,1=12|2,1;2,2;3,1;3,2=13",2,2,"f h1+ v2+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=4|1,0;1,1;2,0;2,1=14|1,1;1,2;2,1;2,2=10|2,0;2,1;3,0;3,1=15|2,1;2,2;3,1;3,2=11",2,2,"h2+ v1-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=1|1,0;1,1;2,0;2,1=4|1,1;1,2;2,1;2,2=5|2,0;2,1;3,0;3,1=15|2,1;2,2;3,1;3,2=14",2,2,"v2- h3+"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=8|1,0;1,1;2,0;2,1=13|1,1;1,2;2,1;2,2=9|2,0;2,1;3,0;3,1=3|2,1;2,2;3,1;3,2=7",2,2,"h2+ v3+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=6|0,2;0,3;1,2;1,3=7|1,0;1,1;2,0;2,1=12|1,1;1,2;2,1;2,2=10|1,2;1,3;2,2;2,3=11",3,3,"h1- h3- v1-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=2|1,0;1,1;2,0;2,1=4|1,1;1,2;2,1;2,2=6|2,0;2,1;3,0;3,1=13|2,1;2,2;3,1;3,2=15",3,3,"v3- v5+ h3+"],["0,0;0,1;1,0;1,1=15|0,1;0,2;1,1;1,2=3|1,0;1,1;2,0;2,1=9|1,1;1,2;2,1;2,2=5|2,0;2,1;3,0;3,1=8|2,1;2,2;3,1;3,2=4",3,3,"f h1- h3- v1-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=8|0,2;0,3;1,2;1,3=12",3,3,"h1+ v2+ v1-"],["0,0;0,1;1,0;1,1=15|0,1;0,2;1,1;1,2=9|1,0;1,1;2,0;2,1=7|1,1;1,2;2,1;2,2=5|2,0;2,1;3,0;3,1=3|2,1;2,2;3,1;3,2=1",3,3,"v1- h3- v3+"],["0,0;0,1;1,0;1,1=14|0,1;0,2;1,1;1,2=5|1,0;1,1;2,0;2,1=15|1,1;1,2;2,1;2,2=4",3,3,"v2+ h1- h2-"],["0,0;0,1;1,0;1,1=15|0,1;0,2;1,1;1,2=9|0,2;0,3;1,2;1,3=8|1,0;1,1;2,0;2,1=3|1,1;1,2;2,1;2,2=5|1,2;1,3;2,2;2,3=4",3,3,"h1- h3- v3+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=12|1,0;1,1;2,0;2,1=6|1,1;1,2;2,1;2,2=10|2,0;2,1;3,0;3,1=7|2,1;2,2;3,1;3,2=11",3,3,"f h1- h3- v3+"],["0,0;0,1;1,0;1,1=10|0,1;0,2;1,1;1,2=6|0,2;0,3;1,2;1,3=2|1,0;1,1;2,0;2,1=9|1,1;1,2;2,1;2,2=5|1,2;1,3;2,2;2,3=1",3,3,"f v1- v3+ h3-"],["0,0;0,1;1,0;1,1=11|0,1;0,2;1,1;1,2=10|0,2;0,3;1,2;1,3=4",3,3,"h2+ v1+ h1+"],["0,0;0,1;1,0;1,1=15|0,1;0,2;1,1;1,2=14|0,2;0,3;1,2;1,3=8|1,0;1,1;2,0;2,1=3|1,1;1,2;2,1;2,2=2|1,2;1,3;2,2;2,3=1",3,3,"h3+ v1+ h2+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=9|0,2;0,3;1,2;1,3=13|1,0;1,1;2,0;2,1=2|1,1;1,2;2,1;2,2=11|1,2;1,3;2,2;2,3=15",3,3,"v3- v5- h1-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=12|1,0;1,1;2,0;2,1=1|1,1;1,2;2,1;2,2=13|2,0;2,1;3,0;3,1=3|2,1;2,2;3,1;3,2=7",3,3,"f h3- h4- v1-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=4|0,2;0,3;1,2;1,3=12|1,0;1,1;2,0;2,1=1|1,1;1,2;2,1;2,2=5|1,2;1,3;2,2;2,3=15",3,3,"v3- v4+ h3+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=4|1,0;1,1;2,0;2,1=1|1,1;1,2;2,1;2,2=5|2,0;2,1;3,0;3,1=3|2,1;2,2;3,1;3,2=15",3,3,"h3- h4+ v3+"],["0,0;0,1;1,0;1,1=11|0,1;0,2;1,1;1,2=9|1,0;1,1;2,0;2,1=15|1,1;1,2;2,1;2,2=13",3,3,"v1- v2+ h2+"],["0,0;0,1;1,0;1,1=13|0,1;0,2;1,1;1,2=15|1,0;1,1;2,0;2,1=5|1,1;1,2;2,1;2,2=6|2,0;2,1;3,0;3,1=1|2,1;2,2;3,1;3,2=2",3,3,"f v1+ h3- v-1+"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=14|0,2;0,3;1,2;1,3=15|1,0;1,1;2,0;2,1=5|1,1;1,2;2,1;2,2=6|1,2;1,3;2,2;2,3=7",3,3,"v1- h1- h2-"],["0,0;0,1;1,0;1,1=11|0,1;0,2;1,1;1,2=5|0,2;0,3;1,2;1,3=4",3,3,"h2- v3- h3-"],["0,0;0,1;1,0;1,1=5|0,1;0,2;1,1;1,2=6|0,2;0,3;1,2;1,3=7",3,3,"v1- h2+ h1+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=1|0,2;0,3;1,2;1,3=3|1,0;1,1;2,0;2,1=12|1,1;1,2;2,1;2,2=13|1,2;1,3;2,2;2,3=14",3,3,"h3- v3+ h4-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=11|1,0;1,1;2,0;2,1=1|1,1;1,2;2,1;2,2=10",3,3,"v2- h3- h5+"],["0,0;0,1;1,0;1,1=11|0,1;0,2;1,1;1,2=3|1,0;1,1;2,0;2,1=10|1,1;1,2;2,1;2,2=2|2,0;2,1;3,0;3,1=8|2,1;2,2;3,1;3,2=1",3,3,"v1- h1+ h-1+"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=8|0,2;0,3;1,2;1,3=1",3,3,"v2+ v1- h1-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=2|0,2;0,3;1,2;1,3=3|1,0;1,1;2,0;2,1=9|1,1;1,2;2,1;2,2=10|1,2;1,3;2,2;2,3=11",3,3,"v1- h3- h5+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=13|1,0;1,1;2,0;2,1=6|1,1;1,2;2,1;2,2=14|2,0;2,1;3,0;3,1=7|2,1;2,2;3,1;3,2=15",3,3,"h1+ v1+ h0+"],["0,0;0,1;1,0;1,1=11|0,1;0,2;1,1;1,2=7|1,0;1,1;2,0;2,1=10|1,1;1,2;2,1;2,2=6|2,0;2,1;3,0;3,1=9|2,1;2,2;3,1;3,2=5",3,3,"f v3+ h1- h3-"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=13|1,0;1,1;2,0;2,1=4|1,1;1,2;2,1;2,2=5",3,3,"h1- h2+ v2-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=4|1,0;1,1;2,0;2,1=2|1,1;1,2;2,1;2,2=10|2,0;2,1;3,0;3,1=3|2,1;2,2;3,1;3,2=11",3,3,"h3+ h2+ v1-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=8|0,2;0,3;1,2;1,3=12|1,0;1,1;2,0;2,1=7|1,1;1,2;2,1;2,2=11|1,2;1,3;2,2;2,3=15",3,3,"v3- h1+ v5+"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=2|0,2;0,3;1,2;1,3=3",3,3,"h2- v1+ h3+"],["0,0;0,1;1,0;1,1=4|0,1;0,2;1,1;1,2=5",3,3,"v2+ h2+ h1+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=6|0,2;0,3;1,2;1,3=7",3,3,"h2+ h1+ v1-"],["0,0;0,1;1,0;1,1=10|0,1;0,2;1,1;1,2=11",3,3,"v2- h2- h3-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=1|0,2;0,3;1,2;1,3=2|1,0;1,1;2,0;2,1=8|1,1;1,2;2,1;2,2=9|1,2;1,3;2,2;2,3=10",3,3,"h3- h5- v3-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=3|1,0;1,1;2,0;2,1=8|1,1;1,2;2,1;2,2=9|2,0;2,1;3,0;3,1=12|2,1;2,2;3,1;3,2=13",3,3,"f v1+ v0- h1-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=1|0,2;0,3;1,2;1,3=3|1,0;1,1;2,0;2,1=12|1,1;1,2;2,1;2,2=13|1,2;1,3;2,2;2,3=7",3,3,"h3- h4- v3+"],["0,0;0,1;1,0;1,1=15|0,1;0,2;1,1;1,2=6|0,2;0,3;1,2;1,3=2",3,3,"v2- v3- h3+"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=15|1,0;1,1;2,0;2,1=8|1,1;1,2;2,1;2,2=11|2,0;2,1;3,0;3,1=1|2,1;2,2;3,1;3,2=2",3,3,"v1- v3+ h1-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=12|1,0;1,1;2,0;2,1=1|1,1;1,2;2,1;2,2=13|2,0;2,1;3,0;3,1=3|2,1;2,2;3,1;3,2=15",3,3,"v3- h1+ h0+"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=13",3,3,"v2+ h2- h3+"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=13|0,2;0,3;1,2;1,3=15",3,3,"v3- h2- h3+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=2|1,0;1,1;2,0;2,1=4|1,1;1,2;2,1;2,2=6",3,3,"v3- v5- h2-"],["0,0;0,1;1,0;1,1=1|0,1;0,2;1,1;1,2=5|1,0;1,1;2,0;2,1=3|1,1;1,2;2,1;2,2=7",3,3,"v1- v2+ h2-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=8|1,0;1,1;2,0;2,1=1|1,1;1,2;2,1;2,2=9|2,0;2,1;3,0;3,1=7|2,1;2,2;3,1;3,2=11",3,3,"h1- v3- h3-"],["0,0;0,1;1,0;1,1=10|0,1;0,2;1,1;1,2=8|1,0;1,1;2,0;2,1=2|1,1;1,2;2,1;2,2=1",4,4,"v1+ h3+ h2- v-1+"],["0,0;0,1;1,0;1,1=15|0,1;0,2;1,1;1,2=8|1,0;1,1;2,0;2,1=3|1,1;1,2;2,1;2,2=2",4,4,"v1+ h3+ v0+ h1-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=6|1,0;1,1;2,0;2,1=8|1,1;1,2;2,1;2,2=14",4,4,"h1+ h-1- v1+ v-1+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=1|1,0;1,1;2,0;2,1=8|1,1;1,2;2,1;2,2=10",4,4,"v3+ v2- h3+ h2+"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=8|0,2;0,3;1,2;1,3=2",4,4,"v1+ v-1- v0+ h1-"],["0,0;0,1;1,0;1,1=13",4,4,"v2+ v1- h2- h3+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=8|1,0;1,1;2,0;2,1=3|1,1;1,2;2,1;2,2=9",4,4,"v3- v4- h3- h5+"],["0,0;0,1;1,0;1,1=10|0,1;0,2;1,1;1,2=9|1,0;1,1;2,0;2,1=6|1,1;1,2;2,1;2,2=5",4,4,"v1- v3+ h1- h3-"],["0,0;0,1;1,0;1,1=11|0,1;0,2;1,1;1,2=9|1,0;1,1;2,0;2,1=3|1,1;1,2;2,1;2,2=2",4,4,"v1- v2+ h3+ h2+"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=7|1,0;1,1;2,0;2,1=1|1,1;1,2;2,1;2,2=3",4,4,"h3- v1+ h4- v-1-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=2",4,4,"v1+ v-1- h2+ h1-"],["0,0;0,1;1,0;1,1=10|0,1;0,2;1,1;1,2=1|1,0;1,1;2,0;2,1=11|1,1;1,2;2,1;2,2=3",4,4,"v1- v2- h3- h5+"],["0,0;0,1;1,0;1,1=13|0,1;0,2;1,1;1,2=7|1,0;1,1;2,0;2,1=1|1,1;1,2;2,1;2,2=3",4,4,"v1- h3- h4+ v2-"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=7",4,4,"v2- h1- h2+ v3+"],["0,0;0,1;1,0;1,1=13|0,1;0,2;1,1;1,2=1|1,0;1,1;2,0;2,1=15|1,1;1,2;2,1;2,2=3",4,4,"v1- v2+ h1- h3+"],["0,0;0,1;1,0;1,1=15|0,1;0,2;1,1;1,2=9|1,0;1,1;2,0;2,1=3|1,1;1,2;2,1;2,2=5",4,4,"v1- h1- h3- v3+"],["0,0;0,1;1,0;1,1=13|0,1;0,2;1,1;1,2=15|1,0;1,1;2,0;2,1=9|1,1;1,2;2,1;2,2=7",4,4,"v1- h1- h2- v2-"],["0,0;0,1;1,0;1,1=11|0,1;0,2;1,1;1,2=5|1,0;1,1;2,0;2,1=3|1,1;1,2;2,1;2,2=1",4,4,"v1- h3+ h2- v3+"],["0,0;0,1;1,0;1,1=14|0,1;0,2;1,1;1,2=1|1,0;1,1;2,0;2,1=15|1,1;1,2;2,1;2,2=3",4,4,"v1+ h3- v0- h5+"],["0,0;0,1;1,0;1,1=11|0,1;0,2;1,1;1,2=3|1,0;1,1;2,0;2,1=12|1,1;1,2;2,1;2,2=5",4,4,"v1- h1+ h-1+ v2-"],["0,0;0,1;1,0;1,1=14|0,1;0,2;1,1;1,2=15|1,0;1,1;2,0;2,1=1|1,1;1,2;2,1;2,2=7",4,4,"v1- h1+ v2+ h0+"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=8|1,0;1,1;2,0;2,1=15|1,1;1,2;2,1;2,2=7",4,4,"v1+ h1- h2- v0+"],["0,0;0,1;1,0;1,1=9",4,4,"v2+ v1- h2- h3-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=9|1,0;1,1;2,0;2,1=7|1,1;1,2;2,1;2,2=15",4,4,"v1- h3- h5- v2-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=4|1,0;1,1;2,0;2,1=3|1,1;1,2;2,1;2,2=14",4,4,"h3- v3+ h4+ v2+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=12|1,0;1,1;2,0;2,1=7|1,1;1,2;2,1;2,2=14",4,4,"v1+ h1- v-1+ h2-"],["0,0;0,1;1,0;1,1=15|0,1;0,2;1,1;1,2=14|0,2;0,3;1,2;1,3=4",4,4,"h1- h2+ h1- v1-"],["0,0;0,1;1,0;1,1=7|0,1;0,2;1,1;1,2=9",4,4,"v1- h2- v2+ h3-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=6",4,4,"v3+ h2+ h1- v2+"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=14|1,0;1,1;2,0;2,1=5|1,1;1,2;2,1;2,2=3",4,4,"v1- h1+ v3- h0+"],["0,0;0,1;1,0;1,1=8",4,4,"v2+ v1+ h2- h3-"],["0,0;0,1;1,0;1,1=13|0,1;0,2;1,1;1,2=5|1,0;1,1;2,0;2,1=15|1,1;1,2;2,1;2,2=6",4,4,"v3- h3- v5+ h5-"],["0,0;0,1;1,0;1,1=11|0,1;0,2;1,1;1,2=12|1,0;1,1;2,0;2,1=2|1,1;1,2;2,1;2,2=4",4,4,"v3- h3- h5- v4-"],["0,0;0,1;1,0;1,1=13|0,1;0,2;1,1;1,2=5",4,4,"h1- h2+ v2+ v1+"],["0,0;0,1;1,0;1,1=13|0,1;0,2;1,1;1,2=4|1,0;1,1;2,0;2,1=14|1,1;1,2;2,1;2,2=7",4,4,"v1- v3- h1- h2-"],["0,0;0,1;1,0;1,1=15|0,1;0,2;1,1;1,2=7|1,0;1,1;2,0;2,1=9|1,1;1,2;2,1;2,2=5",4,4,"v1- h3+ v2+ h1+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=12|1,0;1,1;2,0;2,1=3|1,1;1,2;2,1;2,2=14",4,4,"v1+ h3- v-1- h4-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=12|1,0;1,1;2,0;2,1=11|1,1;1,2;2,1;2,2=15",4,4,"v1+ h1+ h0+ v-1-"],["0,0;0,1;1,0;1,1=11|0,1;0,2;1,1;1,2=3|1,0;1,1;2,0;2,1=5|1,1;1,2;2,1;2,2=1",4,4,"v1- h3+ h2+ v2-"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=4|1,0;1,1;2,0;2,1=15|1,1;1,2;2,1;2,2=7",4,4,"h1- h2+ v1- v3+"],["0,0;0,1;1,0;1,1=10|0,1;0,2;1,1;1,2=12|1,0;1,1;2,0;2,1=2|1,1;1,2;2,1;2,2=4",4,4,"h1+ v3+ h-1- v2+"],["0,0;0,1;1,0;1,1=13|0,1;0,2;1,1;1,2=14",4,4,"v1- v3+ h2- h3+"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=7|1,0;1,1;2,0;2,1=12|1,1;1,2;2,1;2,2=11",4,4,"v1+ h1- h3+ v-1-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=10|1,0;1,1;2,0;2,1=12|1,1;1,2;2,1;2,2=14",4,4,"v3- h1+ h0- v5+"],["0,0;0,1;1,0;1,1=10|0,1;0,2;1,1;1,2=2|1,0;1,1;2,0;2,1=12|1,1;1,2;2,1;2,2=1",4,4,"h3- v1+ h4+ v-1+"],["0,0;0,1;1,0;1,1=2|0,1;0,2;1,1;1,2=8",5,5,"v1+ v-1- v0- h3- h5+"],["0,0;0,1;1,0;1,1=12|0,1;0,2;1,1;1,2=6",5,5,"v1+ v-1- v0- h3- h5-"],["0,0;0,1;1,0;1,1=11|0,1;0,2;1,1;1,2=1",5,5,"v1- v2+ v1- h1+ h-1+"],["0,0;0,1;1,0;1,1=15|0,1;0,2;1,1;1,2=5",5,5,"v1- v2+ v1- h1- h2-"],["0,0;0,1;1,0;1,1=13|0,1;0,2;1,1;1,2=7",5,5,"v1- v2+ v1- h3- h5-"],["0,0;0,1;1,0;1,1=0|0,1;0,2;1,1;1,2=10",5,5,"v1+ v-1- v0- h1+ h-1+"],["0,0;0,1;1,0;1,1=14|0,1;0,2;1,1;1,2=4",5,5,"v1+ v-1- v0- h1- h2-"],["0,0;0,1;1,0;1,1=3|0,1;0,2;1,1;1,2=9",5,5,"v1- v2+ v1- h3- h5+"]],"sum":[["1",4,4,"v2+ v1+ h2+ h1-"],["2",4,4,"v2+ v1- h2+ h1-"],["3",3,3,"v2+ h2+ h1-"],["4",4,4,"v1+ v-1- h2+ h1-"],["5",4,4,"v1- v3- h2+ h1-"],["6",3,3,"v2+ v1+ h2-"],["7",3,3,"v2- h2+ h1-"],["8",3,3,"v1+ h2+ h1-"],["9",3,3,"v1- h2+ h1-"],["10",2,2,"h2+ h1-"],["11",3,3,"v2+ h2+ h1+"],["12",3,3,"v2- v3- h2-"],["13",4,4,"v1- v3- h2+ h1+"],["14",2,2,"v2+ h2-"],["15",3,3,"v2- h2+ h1+"],["16",3,3,"v1+ v-1- h2-"],["17",4,4,"v1+ h2- v-1+ h3-"],["18",3,3,"v1- v3- h2-"],["19",3,3,"v2+ h2- h3-"],["20",3,3,"v1- v2+ h2-"],["21",3,3,"v1- h2+ h1+"],["22",2,2,"v2- h2-"],["23",3,3,"v2- h2- h3-"],["24",2,2,"v3+ h2-"],["25",3,3,"v2+ v1+ h1-"],["26",2,2,"v3- h2-"],["27",3,3,"v2- v3+ h3+"],["28",2,2,"v1+ h2-"],["29",3,3,"v2+ h1+ v1-"],["30",2,2,"v1- h2-"],["31",3,3,"v2- v3+ h1-"],["32",2,2,"v2+ v1+"],["33",2,2,"v2+ h3-"],["34",3,3,"v1+ h2- v-1-"],["35",3,3,"h2- h3- v3+"],["36",1,1,"h2-"],["37",3,3,"v3- h1+ h-1+"],["38",3,3,"v2- h1- h3-"],["39",3,3,"v1- v3- h3-"],["40",2,2,"v2- v3+"],["41",2,2,"h3- v2-"],["42",2,2,"h2- v3+"],["43",3,3,"v1+ h3- v-1-"],["44",2,2,"h2- v1-"],["45",2,2,"v2- h3-"],["46",2,2,"v2+ h2+"],["47",3,3,"v1- v3- h3+"],["48",3,3,"v1+ v-1- h2+"],["49",2,2,"v2+ h3+"],["50",3,3,"v1- v3- h2+"],["51",3,3,"v1- v2- h3+"],["52",2,2,"h1+ h-1+"],["53",2,2,"v2- h1-"],["54",2,2,"v2- h2+"],["55",3,3,"v1- v3- h1-"],["56",3,3,"v1+ v-1- h1-"],["57",2,2,"v2+ h1-"],["58",2,2,"h2- h3+"],["59",3,3,"v1- v2- h1-"],["60",1,1,"v2-"],["61",2,2,"h1+ v2+"],["62",3,3,"v1- h1- v2-"],["63",2,2,"v1- h3-"],["64",2,2,"v1+ v-1+"],["65",2,2,"h3+ v3+"],["66",2,2,"h3- v3-"],["67",2,2,"v3- h3+"],["68",2,2,"v1- v3-"],["69",2,2,"v2- h1+"],["70",3,3,"h1- h2+ v3+"],["72",2,2,"v1- v2-"],["73",2,2,"v1- h3+"],["74",2,2,"v1+ h3+"],["75",2,2,"h3- v1+"],["76",1,1,"v2+"],["78",1,1,"h3-"],["79",2,2,"v3- h1-"],["80",2,2,"v3+ h1-"],["84",2,2,"h1- h2-"],["85",2,2,"v1- h1-"],["86",2,2,"v1+ h1-"],["87",2,2,"h1+ v1+"],["88",2,2,"h1- v1-"],["89",2,2,"h1+ v3+"],["90",2,2,"v3+ h1+"],["92",2,2,"h1+ v1-"],["93",2,2,"v3- h1+"],["94",1,1,"h3+"],["96",1,1,"v3-"],["99",2,2,"v1- h1+"],["100",1,1,"v3+"],["104",1,1,"v1-"],["108",1,1,"v1+"],["110",1,1,"h1-"],["126",1,1,"h1+"]]},"tri":{"adj":[["6-13",1,1,"d-2-"],["9-14",1,1,"d-2-"],["0-7",1,1,"d2+"],["3-8",1,1,"d2+"],["1-4",1,1,"a2-"],["5-12",1,1,"a2-"],["2-11",1,1,"a6+"],["10-15",1,1,"a6+"],["6-9",2,2,"v2- d0-"],["3-12",2,2,"v2- d2+"],["1-12",2,2,"v2- a4-"],["6-11",2,2,"v2- a6+"],["2-13",2,2,"v2+ d-2-"],["7-8",2,2,"v2+ d0+"],["5-8",2,2,"v2+ a2-"],["2-15",2,2,"v2+ a4+"],["1-14",2,2,"h2- d-2-"],["7-10",2,2,"h2- a6+"],["0-15",2,2,"h2+ d2+"],["4-9",2,2,"h2+ a2-"],["11-12",2,2,"d-2- v2-"],["4-15",2,2,"d-2- h2+"],["0-12",2,2,"d-2- d0-"],["3-15",2,2,"d-2- d0-"],["5-13",2,2,"d-2- a2-"],["10-14",2,2,"d-2- a6+"],["4-14",2,2,"d-2+ v0+"],["11-13",2,2,"d-2+ h4-"],["0-13",2,2,"d-2+ d-4+"],["3-14",2,2,"d-2+ d-4+"],["7-15",2,2,"d0- v2-"],["8-12",2,2,"d0- h2+"],["0-6",2,2,"d0- d2+"],["3-9",2,2,"d0- d2+"],["4-12",2,2,"d0- a2-"],["11-15",2,2,"d0- a6+"],["0-10",2,2,"d0+ v2+"],["1-9",2,2,"d0+ v2+"],["3-5",2,2,"d0+ h2-"],["2-6",2,2,"d0+ h2-"],["7-13",2,2,"d0+ d-2-"],["8-14",2,2,"d0+ d-2-"],["1-5",2,2,"d0+ a2-"],["2-10",2,2,"d0+ a6+"],["3-11",2,2,"d2- v4-"],["0-4",2,2,"d2- h0+"],["2-5",2,2,"d2+ v2+"],["1-10",2,2,"d2+ h2-"],["1-13",2,2,"d2+ d0+"],["2-14",2,2,"d2+ d0+"],["3-6",2,2,"a2- v2-"],["7-14",2,2,"a2- h2-"],["7-11",2,2,"a2- a4-"],["6-10",2,2,"a2- a4-"],["4-11",2,2,"a2+ a0+"],["5-10",2,2,"a2+ a0+"],["6-14",2,2,"a4- d-2-"],["3-7",2,2,"a4- d2+"],["1-11",2,2,"a4- a6+"],["10-12",2,2,"a4- a6+"],["9-13",2,2,"a4+ d-2-"],["0-8",2,2,"a4+ d2+"],["2-4",2,2,"a4+ a2-"],["5-15",2,2,"a4+ a2-"],["8-13",2,2,"a6+ v2+"],["0-9",2,2,"a6+ h2+"],["4-8",2,2,"a6+ a4+"],["5-9",2,2,"a6+ a4+"],["3-4",3,3,"d-2- d0- v2-"],["0-11",3,3,"d-2- d0- h2+"],["0-14",3,3,"d-2+ v0+ d-6-"],["3-13",3,3,"d-2+ h4- d-6-"],["4-13",3,3,"d-2+ d-4+ a2-"],["11-14",3,3,"d-2+ d-4+ a6+"],["5-14",3,3,"d-2+ a4- h4-"],["10-13",3,3,"d-2+ a4- a6+"],["0-5",3,3,"d2- d4- a2-"],["3-10",3,3,"d2- d4- a6+"],["4-10",3,3,"a2+ v0+ a-2-"],["5-11",3,3,"a2+ h0+ a-2-"],["6-13|7-11",4,3,"d-2+ a2- a4-"],["0-4|3-9",4,3,"d0- d2- h0+"],["10-14|5-11",4,3,"a6- h4- a10+"],["4-13|8-14",4,3,"a2+ d0+ d-2-"],["2-4|5-13",4,3,"a4+ d-2- a2-"],["0-15|3-12",4,3,"v2+ d-2- h2+"],["1-13|2-11",4,3,"d2- a6- d4-"],["2-11|3-5",4,3,"a6- d0+ v4+"],["2-6|3-10",4,3,"a2- a4- h2-"],["1-10|5-13",4,3,"d2- a2+ h-2+"],["10-14|7-11",4,3,"a6- h4- d0+"],["0-9|5-13",4,3,"d-2+ a6+ v0+"],["10-13|2-11",4,3,"a6- a8- d-2-"],["3-8|6-9",4,3,"a6+ h2+ d0-"],["3-8|5-9",4,3,"d2- a6+ a4+"],["1-11|10-14",4,3,"a4- d-2- a6+"],["0-8|9-13",4,3,"a4+ d-2- d2+"],["10-15|3-12",4,3,"d-2- v2- d2+"],["1-13|2-10",4,3,"d2+ d0+ a6+"],["4-8|5-13",4,3,"a2+ v0+ d0+"],["3-4|5-10",4,3,"a2+ a0+ d2+"],["3-8|9-13",4,3,"d2- a4+ d6+"],["0-7|11-12",4,3,"d-2- a2- v2-"],["2-10|3-5",4,3,"d0+ h2- a6+"],["0-5|3-14",4,3,"d2- d4- a2-"],["0-10|9-14",4,3,"d-2+ a4+ h4+"],["6-14|7-11",4,3,"a2- a4- d-2-"],["0-11|10-15",4,3,"a6- a8- d2+"],["0-4|3-11",4,3,"d2+ a2- a6+"],["11-15|4-14",4,3,"d0- v2- a6+"],["1-5|2-14",4,3,"d2+ d0+ a2-"],["11-15|4-12",4,3,"d0- a2- a6+"],["3-8|4-14",4,3,"d-2+ a6+ v0+"],["0-7|6-10",4,3,"d2- a2- a4-"],["0-7|3-10",4,3,"d2- d4- a6+"],["1-10|4-14",4,3,"d2- a2+ h-2+"],["3-14|4-13",4,3,"d-2+ d-4+ a2-"],["1-4|2-10",4,3,"a2+ d0+ a-2-"],["0-10|4-15",4,3,"d-2+ a6- h6-"],["3-11|5-12",4,3,"d-2+ a6- h6-"],["0-4|3-13",4,3,"d2- h0+ d6+"],["11-14|4-15",4,3,"a2+ a0+ h0+"],["3-4|9-14",4,3,"d-2+ d-4+ h4-"],["11-13|2-5",4,3,"d2- a6- v6-"],["3-11|5-13",4,3,"d-2- a6- v4-"],["3-11|5-10",4,3,"d2+ a6- a8-"],["11-12|3-5",4,3,"d-2+ a2+ v-2+"],["2-11|7-14",4,3,"d2+ a2- h2-"],["0-13|3-10",4,3,"d2- d4- a6+"],["1-4|10-14",4,3,"d-2- a2- a6+"],["0-15|5-12",4,3,"d-2- h2+ d2+"],["0-11|5-10",4,3,"a6- a8- d2+"],["3-7|6-13",4,3,"d-2+ a4- d-6-"],["5-10|6-9",4,3,"v2+ d0+ h2-"],["3-11|6-13",4,3,"d-2- d2+ a6+"],["0-14|5-13",4,3,"d-2+ v0+ d-6-"],["4-8|9-13",4,3,"a6+ a4+ d-2-"],["4-13|8-12",4,3,"a6+ a4+ h2+"],["5-13|8-14",4,3,"d0+ d-2- a2-"],["0-11|6-13",4,3,"d-2+ d-4+ v0+"],["0-7|11-15",5,5,"d-2- d0- a2- v2- a6+"],["0-13|1-9",5,4,"a4- a6- v4- h4-"],["3-14|4-10",5,4,"d-2- a6- d0+ a8-"],["3-11|6-14",5,5,"d2- a2- a4- v4- d6+"],["0-7|5-14",5,4,"d-2- d2- a4- h0-"],["2-15|4-14",5,4,"d2+ a4- v2- h2-"],["1-11|9-14",5,4,"d-2+ d-6- a4+ h4+"],["2-5|3-13",5,4,"a2+ v0- d0+ v0+"],["0-14|7-11",5,4,"d2- a2- a4+ d4-"],["0-8|10-13",5,4,"d-2+ a4+ v0+ d-6-"],["3-4|5-14",5,4,"d-2- d2- a4+ a2-"],["10-13|3-8",5,4,"d-2- d2- a4+ v4+"],["2-14|5-11",5,4,"d2- a6- d4+ a8-"],["3-11|9-14",5,4,"d-2+ a4- d-6+ h6-"],["11-15|5-13",5,4,"d0- a6- a10- v6-"],["0-8|4-13",5,4,"a6+ a4+ h2+ d2+"],["0-7|8-13",5,4,"a2- a6+ v2+ d0+"],["1-4|11-12",5,4,"d-2- d2+ v2- a4-"],["2-6|3-13",5,4,"a2- h2+ d0+ h2-"],["11-13|5-8",5,4,"d0- h2- d-2+ h4-"],["11-13|7-8",5,4,"d0- h2+ a2- v2-"],["3-14|4-11",5,4,"d-2+ d-4+ a6- a8-"],["0-14|1-9",5,4,"a6+ v2- d0+ v2+"],["3-14|7-11",5,4,"a2- a4- d2- d4-"],["0-11|9-13",5,4,"d2- a4+ h0+ d6+"],["1-11|9-13",5,4,"d2+ a4+ v2+ d-2-"],["0-12|4-13",5,4,"d2- h0+ a4+ v4+"],["0-13|5-9",5,4,"a6+ a4+ d-2+ d-4+"],["0-12|10-13",5,4,"d2- v4+ a4+ h0+"],["11-15|3-4",5,4,"d-2- d0- v2- a6+"],["2-14|3-10",5,4,"d-2+ h4- a4- v0-"],["4-8|5-12",5,4,"d-2- a6+ a4+ h2+"],["4-11|8-12",5,4,"d0+ d-2- h2+ v2+"],["5-10|9-13",5,4,"d0+ d-2- v2- h2+"],["1-12|10-13",5,4,"d2+ h2+ a4+ v2+"],["11-13|4-8",5,4,"a2+ d0- v0- h0+"],["0-5|2-10",5,4,"a2+ d0+ v0+ a-2-"],["0-10|7-15",5,5,"d-2- a2- v2+ d0- v2-"],["0-5|1-13",5,4,"d-2+ v0+ a4+ h4+"],["0-13|1-10",5,5,"a2- a4+ a2- v2- h2-"],["10-13|6-9",5,4,"a2- h2- d0+ v2+"],["1-12|4-13",5,4,"d2+ v2+ a4+ h2+"],["1-4|3-9",5,4,"a2+ d0+ a-2- h0-"],["1-4|9-13",5,5,"d2+ a6+ a4+ v2+ d-2-"],["3-11|4-13",5,4,"d2+ a6- a8- v4-"],["3-10|5-13",5,4,"d-2- a2+ a0+ v0+"],["10-14|3-8",5,4,"d2- a4- d6- v6-"],["0-8|5-13",5,5,"d-2+ a6+ a4+ v0+ d-6-"],["0-11|1-12",5,4,"d-2- v2+ a4+ h2+"],["1-13|4-11",5,5,"d-2+ d-6- h4+ a4+ v0+"],["0-14|5-9",5,4,"d-2+ a6+ a4- d-4+"],["3-13|9-14",5,5,"a6+ v2- d2- a4- v4-"],["0-13|4-11",5,4,"d-2+ d-4+ a2+ a0+"],["3-4|6-13",5,4,"d-2- d2- a4- v4-"],["1-4|3-10",5,4,"a2- a6- d0+ h4-"],["3-7|5-14",5,4,"d-2+ a4- h4- d-6-"],["2-15|3-5",5,4,"d-2- a4- v2- h2-"],["0-11|9-14",5,4,"d-2- d2- a4+ h0+"],["3-13|4-8",5,4,"d2- a6+ a4- d4-"],["1-12|5-10",5,5,"d-2- d2+ h2+ a4+ v2+"]],"ex":[["8,9,10,11,12,13,14,15",1,1,"h2+"],["0,1,2,3,4,5,6,7",1,1,"h2-"],["0,1,2,3,6,7,8,9,10,11,12,13,14,15",1,1,"a2+"],["4,5,6,7,12,13,14,15",1,1,"v2-"],["0,1,2,3,4,5,6,7,8,9,10,11,13,14",1,1,"d-2-"],["0,1,2,3,4,5,6,7,10,11,12,13,14,15",1,1,"a6+"],["0,1,4,5,6,7,12,13",1,1,"a4-"],["0,1,2,3,4,7,8,11",1,1,"d0+"],["0,1,2,3,4,5,6,7,8,9,10,11,12,15",1,1,"d-2+"],["0,1,2,3,8,9,10,11",1,1,"v2+"],["1,2,4,5,6,7,8,9,10,11,12,13,14,15",1,1,"d2-"],["0,1,2,3,4,5,6,7,8,9,12,13,14,15",1,1,"a6-"],["0,3,4,5,6,7,8,9,10,11,12,13,14,15",1,1,"d2+"],["5,6,9,10,12,13,14,15",1,1,"d0-"],["0,1,2,3,4,5,8,9,10,11,12,13,14,15",1,1,"a2-"],["2,3,8,9,10,11,14,15",1,1,"a4+"],["4,5,8,9,10,11,13,14",2,2,"d-2+ v0+"],["0,1,2,3,7,8,11",2,2,"d0- a2+"],["0,3,4,5,6,7,10,11",2,2,"d2- v4-"],["4,5,6,7",2,2,"v2+ h2-"],["2,3,5,6,12,13",2,2,"a4- h2-"],["0,1,2,3,4,5,6,7,8,9,12,15",2,2,"d-2- a6-"],["0,3,4,5,6,7,8,9,10,11,13,14",2,2,"d-2- d2+"],["2,3,4,5,8,9,14,15",2,2,"a6+ a4+"],["2,3,8,9,10,11,13",2,2,"a4+ d-2-"],["5,6,9,10,12,15",2,2,"d0+ d-2+"],["4,7,8,11,13,14",2,2,"d0+ d-2-"],["0,1,2,3,8,11",2,2,"v2- d0+"],["0,1,2,3,6,7,8,9,10,11,13,14",2,2,"d-2+ a2+"],["0,3,4,5,8,9,10,11,12,13,14,15",2,2,"d2+ a2-"],["0,1,4,7,14,15",2,2,"a4- v2-"],["1,2,4,5,6,7,10,11",2,2,"d2+ h2-"],["0,4,5,6,7,12,13",2,2,"d2- a4-"],["0,1,2,3,6,7,10,11,12,13,14,15",2,2,"a2+ a-2-"],["4,9,10,12,13,14,15",2,2,"d0- a2-"],["1,4,5,6,7,12,13",2,2,"d2+ a4-"],["2,3,8,9,10,11,14",2,2,"d-2+ a4+"],["0,1,2,3,4,7",2,2,"h2+ d0+"],["0,1,2,3,4,8,11",2,2,"a2+ d0+"],["4,7,8,9,10,11",2,2,"v2+ d0+"],["9,10,12,13,14,15",2,2,"h2- d0-"],["4,5,8,9,10,11,12,15",2,2,"d-2- h2+"],["0,1,4,5,10,11,12,13",2,2,"a2+ a0+"],["8,9,12,13,14,15",2,2,"h2- a6-"],["2,3,12,13,14,15",2,2,"h2+ a4+"],["0,1,2,3,4,5,6,7,10,11,12,15",2,2,"d-2+ a6+"],["8,9,10,11",2,2,"v2- h2+"],["4,5,8,9,10,11",2,2,"v2+ a2-"],["4,5,6,7,10,11",2,2,"v2- a6+"],["0,3,6,7,12,13,14,15",2,2,"a2- v2-"],["0,3,5,6,9,10",2,2,"d0- d2+"],["4,5,6,7,12,15",2,2,"v2+ d-2+"],["2,8,9,10,11,14,15",2,2,"d2+ a4+"],["1,2,4,5,6,7",2,2,"h2+ d2-"],["1,2,4,7,8,11,13,14",2,2,"d2+ d0+"],["0,1,6,7,12,13",2,2,"a4+ a2+"],["3,8,9,10,11,14,15",2,2,"d2- a4+"],["0,1,2,3,12,13",2,2,"h2- a4-"],["0,1,2,3,8,9",2,2,"v2- a6-"],["2,3,8,9,10,11",2,2,"v2- a4+"],["0,3,5,6,9,10,13,14",2,2,"d-2+ d-4+"],["2,3,5,6,8",3,3,"d0- a6- h4+"],["5,6,8,11,14",3,3,"d0+ d-2- h2-"],["0,3,6,7,10,11",3,3,"d2- v4+ a2+"],["0,1",3,3,"v2- h2+ a4-"],["6,10,12,13",3,3,"a2- a4+ d0-"],["3,4,5,6,7,8",3,3,"a6+ h2- d0+"],["0,4,5,6,7,12",3,3,"d-2+ d-6+ a4-"],["0,3,8,9,14,15",3,3,"a6+ h2- a4+"],["0,2,3,4,8,11",3,3,"d0- a2+ h0+"],["0,1,6,7,10,11,13",3,3,"d-2+ a2- a4-"],["1,9,14,15",3,3,"a4+ v2- d2-"],["0,3,5,6,9,13,14",3,3,"d-2+ d-4- a6-"],["0,2,3,5,8,11",3,3,"a2+ d0+ v0+"],["2,3,4,5,13",3,3,"a4+ d-2- a2-"],["5,6,8,12,13,14",3,3,"d0- a6+ h2+"],["5,9,12,13,14,15",3,3,"a2+ d0+ a-2+"],["0,1,6,7,13",3,3,"d-2+ a4+ a2+"],["0,3,4,5,10,11,12,13,14,15",3,3,"d2+ a2- a6+"],["2,3,12,15",3,3,"h2- d-2+ d-4-"],["1,4,7",3,3,"d0- d2+ a4-"],["0,1,2,3,5,12",3,3,"d-2- h2- a4-"],["3,5,6,14",3,3,"a4- d-2+ d-4+"],["0,1,2,3,4,10",3,3,"a2+ d0+ a-2-"],["0,1,9,10,14",3,3,"d-2+ a4+ h4+"],["7,8,9,10,11",3,3,"v2+ d0- a2+"],["0,1,4,5,7,14",3,3,"d-2+ a4- h4-"],["2,3,5,6",3,3,"h2+ d0- a4+"],["4,12,13",3,3,"a4+ d0- a2-"],["2,3,8,10,11,12",3,3,"d-2- a4+ h2+"],["10,11,12,15",3,3,"d-2- v2+ h2+"],["3,4,5,14,15",3,3,"d2- a4+ a2-"],["0,3,8,11,13,14",3,3,"d2- d4+ h0+"],["2,3,4,11",3,3,"a6- a8+ d0+"],["0,5,6",3,3,"d0- d2- a4-"],["1,2,7,8,11",3,3,"d0- d2+ a2+"],["0,1,4,11,14,15",3,3,"a2+ a0+ h0+"],["3,9,10,15",3,3,"d-2- d0+ a4+"],["10,11,12,13,14,15",3,3,"d2- v4+ d2-"],["5,6,12",3,3,"d0+ d-2- a4-"],["4,5,6,7,8",3,3,"h2- d0- a6-"],["0,1,2,3,11,13",3,3,"a6- h4+ d0+"],["6,8,9,10,11",3,3,"h2+ d0+ a2+"],["0,5,6,8,11,12",3,3,"d-2- d0- h2+"],["3,5,9,10",3,3,"d0+ h2+ a2-"],["2,3,10,12,13",3,3,"a4- a6+ h2-"],["0,8,9,13",4,4,"a4- a6- d-2- d2+"],["5,9,13,14,15",4,4,"d0+ a2- a6- v4+"],["0,9,10,11,13",4,4,"d2- a4+ h0+ d6+"],["2,4,5,11,13,14",4,4,"d-2+ d-6- v0+ a4+"],["1,2,5,12",4,4,"d-2- h2- a4+ a2+"],["0,9,14,15",4,4,"d2- a4- a6- h2+"],["0,4,5,12,15",4,4,"d-2- h2+ d2- a4-"],["1,2,12",4,4,"h2- d-2- a4+ a2+"],["3,8",4,4,"a6+ h2- v2- d0+"],["0,3,6,10",4,4,"a2+ a-2+ d0- d2+"],["1,5,9,10",4,4,"d0- d2- v4- h0+"],["3,6,10,11",4,4,"a2- v2- a6- a8-"],["0,4,10,11,13,14",4,4,"d-2- d2- h0- a4-"],["0,3,6,10,11",4,4,"a6- v4- d0+ a10-"],["3,8,12,13",4,4,"d2- a4- a6- v6+"],["1,9,10,11",4,4,"v2- d2+ a4+ v2+"],["5,10,12",4,4,"a2+ a0- d0+ d-2+"],["3,5,10",4,4,"d0+ a2+ a0+ d-2-"],["3,5,6",4,4,"d-2- d0+ a4- d-2-"],["3,5,11,14",4,4,"d2+ a6- d0- a8-"],["1,2,5,11",4,4,"a6- d0- d2- a10+"],["1,2,7,11",4,4,"a2+ a-2+ d0- d2-"],["3,10,12",4,4,"d-2- a4- a6- d0-"],["0,1,11,15",4,4,"d-2- a4- a6+ v2-"],["0,1,7,10,11,13",4,4,"a2- a4+ d-2+ v0+"],["3,6,7,13",4,4,"d-2+ a4- d-6+ a6-"],["0,1,3,4,11",4,4,"a2+ d0- a-2+ h-2+"],["8,14",4,4,"d0+ d-2+ a4- a6-"],["2,3,11",4,4,"a2- a4+ a2+ d0+"],["11,12,13,14",4,4,"a6- d0- v4+ h4-"],["0,6,12",4,4,"d-2- d0+ a4+ a2+"],["0,4,7",4,4,"d-2- d0+ d-2+ a4-"],["0,3,6,7,8,9,13,14",4,4,"d-2- d2- a2- a6-"],["1,11,14",4,4,"d2+ a4- a6- d0+"],["5,9,10,13,14",4,4,"d-2- d2+ a2+ d0-"],["2,8,12,13",4,4,"d2+ a4- a6- h4+"],["0,13,14,15",4,4,"v2- d2- a4+ h0+"],["0,4,11,13",4,4,"d-2+ d-4+ a2+ a0+"],["5,6,11,13",4,4,"d-2+ h4+ d-4- a4-"],["3,4,5,8,9,13",4,4,"d2- a6+ a4+ d6+"],["8,12,13",4,4,"h2- d0- a6- a8+"],["3,6,7,10,11,12",4,4,"d-2- a2- a4- d2+"],["2,8,9,14",4,4,"d-2+ d-6- a4- a6-"],["0,4,5,12,13",4,4,"d2- a6- a10- a12-"],["1,2,11,13",4,4,"a6- h4+ d0- d2-"],["3,7,9",5,5,"d0- d2- a6- v6- a10-"],["1,4,5,11",5,5,"d2+ v2- d0- a6- v4-"],["6,8,14",5,5,"d0- a6- d2+ h4- a10-"],["2,11,13",5,5,"d2- a2- a6- a8+ d4-"],["0,5,10,13,14",5,5,"d2+ a6- d0+ h4- a10+"],["1,7,11,13,14",5,5,"d2+ d0- a2- a6- v4-"],["4,5,8,12",5,5,"d-2- h2- d0- a6+ h2+"],["0,4,5,9,15",5,5,"d-2- a6- d2- a8- v6-"],["9,13,14",5,5,"d-2- a2+ v0+ d0+ a-2+"],["0,6,10,11,14",5,5,"a2- a4- d-2+ d-6+ h6-"],["2,5,11,13",5,5,"d2- a2+ h-2- d4- h-2+"],["2,10,11,14",5,5,"d-2- a2- a6- d2+ a8-"],["2,10,14",5,5,"d-2+ h4- d-6- a4+ d-4+"],["0,3,10,12",5,5,"d-2- d0+ h2- a6- h4-"],["7,9,13",5,5,"d0- a2+ d2+ v0+ a-2+"],["2,5,10,13,14",5,5,"d2- a2+ d4- h-2+ a-2-"],["4,10,11,13",5,5,"a2+ a0- h0- d-2+ h2-"],["0,4,5,11,14",5,5,"a6- a8- d2- d6- v8-"],["0,2,3,14",5,5,"d-2- a2+ v0+ a0+ h0+"],["0,3,4,10,14",5,5,"d-2- a2- a6- d0- h4+"],["0,4,5,10,13",5,5,"d2+ a6- a8- h4- d-2-"],["2,4,8,13,14",5,5,"d2+ d0- a2- a6- h4+"],["3,5,10,15",5,5,"d-2+ d-6+ v-2- a4- h6-"],["1,2,4,5,14",5,5,"d-2- a6- d2+ h4- a8-"],["0,4,5,12",5,5,"d-2- a6- d2- a8+ a6-"],["2,4,10",5,5,"d0- d2- h0- d2- a6+"],["2,11,12,13",5,5,"d2- a2- a6- a8- h2-"],["3,5,11,13,14",5,5,"d2+ a2- a6- d0+ v4+"],["0,3,5,14",5,5,"d-2+ d-4- h4+ a2+ h2+"],["2,11,15",5,5,"d2+ h2- d-2- a4+ d0+"],["0,6,10,11,12",5,5,"d-2- a2- a4+ d2- h0+"],["0,4,5,10,15",5,5,"d-2+ d-6- a6- a8- v2-"],["0,3,4,11,12",5,5,"d-2+ a6- d-4+ h6- a10+"],["4,5,9,14",5,5,"d2- a2+ a-2- v2+ d4+"],["2,4,13,14",5,5,"d2+ d0- h2+ a2+ h0+"],["2,6,10,11",5,5,"d2+ h2+ d0+ a2- h2-"],["1,4,5,9,14",5,5,"d-2+ d-6- a6+ a4+ h4+"],["0,3,7,9,14",5,5,"d-2+ d-4- a6- a10+ h6+"],["0,1,10,15",5,5,"d-2- a2- a4+ a2- v2+"],["1,10,13",5,5,"d-2+ d-6- a4+ v0- a4-"],["0,3,10,15",5,5,"d-2- a2- v2+ a2- a4+"],["1,7,10,11,13",5,5,"d2+ a2- a4+ d-2+ v0+"],["1,4,5,12",5,5,"d-2- h2+ d2+ a4+ v2+"],["0,3,8,9,14",5,5,"d-2- a2+ a-2- v0+ a0-"],["0,3,5,8",5,5,"d-2- d0- a6- d2- v6-"]],"vw":[["0,0;0,2;1,1=0|0,0;1,1;2,0=1|0,2;1,1;2,2=3|1,1;2,0;2,2=2|2,0;2,2;3,1=8|2,0;3,1;4,0=9|2,2;3,1;4,2=11|3,1;4,0;4,2=10",1,1,"v2+"],["0,0;0,2;1,1=0|0,0;1,1;2,0=3|0,2;1,1;2,2=1|0,2;1,3;2,2=4|1,1;2,0;2,2=2|1,3;2,2;2,4=5|2,0;2,2;3,1=8|2,0;3,1;4,0=11|2,2;2,4;3,3=12|2,2;3,1;4,2=9|2,2;3,3;4,2=15|2,4;3,3;4,4=13|3,1;4,0;4,2=10|3,3;4,2;4,4=14",1,1,"a2-"],["0,0;0,2;1,1=10|0,0;1,1;2,0=11|0,2;0,4;1,3=14|0,2;1,1;2,2=9|0,2;1,3;2,2=15|1,1;2,0;2,2=8|2,0;2,2;3,1=2|2,0;3,1;4,0=3",1,1,"a4+"],["0,0;0,2;1,1=10|0,0;1,1;2,0=11|0,2;1,1;2,2=9|0,2;1,3;2,2=14|1,1;2,0;2,2=8|1,3;2,2;2,4=13|2,0;2,2;3,1=2|2,0;3,1;4,0=3|2,2;2,4;3,3=6|2,2;3,1;4,2=1|2,2;3,3;4,2=7|2,4;3,3;4,4=5|3,1;4,0;4,2=0|3,3;4,2;4,4=4",1,1,"f a6+"],["0,0;0,2;1,1=2|0,0;1,1;2,0=3|0,2;0,4;1,3=6|0,2;1,1;2,2=1|0,2;1,3;2,2=7|0,4;1,3;2,4=5|1,1;2,0;2,2=0|1,3;2,2;2,4=4",1,1,"h2-"],["0,0;0,2;1,1=10|0,0;1,1;2,0=11|0,2;0,4;1,3=14|0,2;1,1;2,2=9|0,2;1,3;2,2=15|0,4;1,3;2,4=13|1,1;2,0;2,2=8|1,3;2,2;2,4=12|2,0;2,2;3,1=2|2,2;2,4;3,3=6|2,2;3,1;4,2=1|2,2;3,3;4,2=7|2,4;3,3;4,4=5|3,3;4,2;4,4=4",1,1,"d2-"],["0,0;0,2;1,1=10|0,0;1,1;2,0=11|0,2;1,1;2,2=9|0,2;1,3;2,2=15|1,1;2,0;2,2=8|1,3;2,2;2,4=12|2,0;2,2;3,1=2|2,0;3,1;4,0=3|2,2;2,4;3,3=6|2,2;3,1;4,2=1|2,2;3,3;4,2=7|2,4;3,3;4,4=5|3,1;4,0;4,2=0|3,3;4,2;4,4=4",1,1,"d-2+"],["0,0;0,2;1,1=14|0,0;1,1;2,0=13|0,2;0,4;1,3=10|0,2;1,1;2,2=15|0,2;1,3;2,2=9|1,1;2,0;2,2=12|2,0;2,2;3,1=6|2,0;3,1;4,0=5",1,1,"f a4+"],["0,0;0,2;1,1=13|0,0;1,1;2,0=14|0,2;0,4;1,3=5|0,2;1,1;2,2=12|0,2;1,3;2,2=6|0,4;1,3;2,4=4|1,1;2,0;2,2=15|1,3;2,2;2,4=7|2,0;2,2;3,1=10|2,2;2,4;3,3=1|2,2;3,1;4,2=11|2,2;3,3;4,2=2|2,4;3,3;4,4=0|3,3;4,2;4,4=3",1,1,"f d-2-"],["0,0;0,2;1,1=11|0,0;1,1;2,0=10|0,2;1,1;2,2=8|0,2;1,3;2,2=3|1,1;2,0;2,2=9|1,3;2,2;2,4=0|2,0;2,2;3,1=15|2,0;3,1;4,0=14|2,2;2,4;3,3=7|2,2;3,1;4,2=12|2,2;3,3;4,2=6|2,4;3,3;4,4=4|3,1;4,0;4,2=13|3,3;4,2;4,4=5",1,1,"d2+"],["0,0;0,2;1,1=0|0,0;1,1;2,0=3|0,2;0,4;1,3=4|0,2;1,1;2,2=1|0,2;1,3;2,2=7|0,4;1,3;2,4=5|1,1;2,0;2,2=2|1,3;2,2;2,4=6|2,0;2,2;3,1=8|2,2;2,4;3,3=12|2,2;3,1;4,2=9|2,2;3,3;4,2=15|2,4;3,3;4,4=13|3,3;4,2;4,4=14",1,1,"f d-2+"],["0,0;0,2;1,1=10|0,0;1,1;2,0=11|0,2;0,4;1,3=14|0,2;1,1;2,2=9|0,2;1,3;2,2=15|0,4;1,3;2,4=13|1,1;2,0;2,2=8|1,3;2,2;2,4=12",1,1,"h2+"],["0,0;0,2;1,1=3|0,0;1,1;2,0=0|0,2;0,4;1,3=11|0,2;1,1;2,2=2|0,2;1,3;2,2=8|1,1;2,0;2,2=1|2,0;2,2;3,1=7|2,0;3,1;4,0=4",1,1,"d0+"],["0,0;0,2;1,1=11|0,0;1,1;2,0=10|0,2;1,1;2,2=8|0,2;1,3;2,2=2|1,1;2,0;2,2=9|1,3;2,2;2,4=1|2,0;2,2;3,1=15|2,0;3,1;4,0=14|2,2;2,4;3,3=7|2,2;3,1;4,2=12|2,2;3,3;4,2=6|2,4;3,3;4,4=4|3,1;4,0;4,2=13|3,3;4,2;4,4=5",1,1,"f a2+"],["0,0;0,2;1,1=13|0,0;1,1;2,0=14|0,2;0,4;1,3=5|0,2;1,1;2,2=12|0,2;1,3;2,2=6|0,4;1,3;2,4=4|1,1;2,0;2,2=15|1,3;2,2;2,4=7|2,0;2,2;3,1=9|2,2;2,4;3,3=1|2,2;3,1;4,2=8|2,2;3,3;4,2=2|2,4;3,3;4,4=0|3,3;4,2;4,4=3",1,1,"a6-"],["0,0;0,2;1,1=0|0,0;1,1;2,0=3|0,2;0,4;1,3=4|0,2;1,1;2,2=1|0,2;1,3;2,2=7|0,4;1,3;2,4=5|1,1;2,0;2,2=2|1,3;2,2;2,4=6|2,0;2,2;3,1=11|2,2;2,4;3,3=12|2,2;3,1;4,2=10|2,2;3,3;4,2=15|2,4;3,3;4,4=13|3,3;4,2;4,4=14",1,1,"a6+"],["0,0;0,2;1,1=11|0,0;1,1;2,0=10|0,2;0,4;1,3=3|0,2;1,1;2,2=8|0,2;1,3;2,2=2|1,1;2,0;2,2=9|2,0;2,2;3,1=15|2,0;3,1;4,0=14",1,1,"f d0-"],["0,0;0,2;1,1=0|0,0;1,1;2,0=3|0,2;0,4;1,3=4|0,2;1,1;2,2=1|0,2;1,3;2,2=7|0,4;1,3;2,4=5|1,1;2,0;2,2=2|1,3;2,2;2,4=6|2,0;2,2;3,1=8|2,0;3,1;4,0=11|2,2;2,4;3,3=12|2,2;3,1;4,2=9|2,2;3,3;4,2=15|3,1;4,0;4,2=10",1,1,"f a6-"],["0,0;0,2;1,1=10|0,0;1,1;2,0=11|0,2;0,4;1,3=14|0,2;1,1;2,2=9|0,2;1,3;2,2=15|0,4;1,3;2,4=13|1,1;2,0;2,2=8|1,3;2,2;2,4=12|2,0;2,2;3,1=2|2,0;3,1;4,0=3|2,2;2,4;3,3=6|2,2;3,1;4,2=1|2,2;3,3;4,2=7|3,1;4,0;4,2=0",1,1,"a2+"],["0,0;0,2;1,1=10|0,0;1,1;2,0=11|0,2;0,4;1,3=14|0,2;1,1;2,2=9|0,2;1,3;2,2=15|0,4;1,3;2,4=13|1,1;2,0;2,2=8|1,3;2,2;2,4=12|2,0;2,2;3,1=3|2,2;2,4;3,3=6|2,2;3,1;4,2=0|2,2;3,3;4,2=7|2,4;3,3;4,4=5|3,3;4,2;4,4=4",1,1,"f a2-"],["0,0;0,2;1,1=10|0,0;1,1;2,0=11|0,2;0,4;1,3=14|0,2;1,1;2,2=9|0,2;1,3;2,2=15|0,4;1,3;2,4=13|1,1;2,0;2,2=8|1,3;2,2;2,4=12|2,0;2,2;3,1=2|2,0;3,1;4,0=3|2,2;2,4;3,3=5|2,2;3,1;4,2=1|2,2;3,3;4,2=4|3,1;4,0;4,2=0",1,1,"f d2+"],["0,0;0,2;1,1=14|0,0;1,1;2,0=13|0,2;1,1;2,2=15|1,1;2,0;2,2=12|2,0;2,2;3,1=6|2,0;3,1;4,0=5|2,2;3,1;4,2=7|3,1;4,0;4,2=4",1,1,"f v2+"],["0,0;0,2;1,1=0|0,0;1,1;2,0=3|0,2;1,1;2,2=1|0,2;1,3;2,2=7|1,1;2,0;2,2=2|1,3;2,2;2,4=6|2,0;2,2;3,1=8|2,0;3,1;4,0=11|2,2;2,4;3,3=12|2,2;3,1;4,2=9|2,2;3,3;4,2=15|2,4;3,3;4,4=13|3,1;4,0;4,2=10|3,3;4,2;4,4=14",1,1,"f d2-"],["0,0;0,2;1,1=0|0,0;1,1;2,0=3|0,2;0,4;1,3=4|0,2;1,1;2,2=1|0,2;1,3;2,2=7|1,1;2,0;2,2=2|2,0;2,2;3,1=8|2,0;3,1;4,0=11",1,1,"f a4-"],["0,0;0,2;1,1=13|0,2;0,4;1,3=5|0,2;1,1;2,2=12|0,2;1,3;2,2=6|0,4;1,3;2,4=4|1,3;2,2;2,4=7|2,2;2,4;3,3=1|2,4;3,3;4,4=0",1,1,"a4-"],["0,0;0,2;1,1=0|0,0;1,1;2,0=3|0,2;0,4;1,3=4|0,2;1,1;2,2=1|0,2;1,3;2,2=7|0,4;1,3;2,4=5|1,1;2,0;2,2=2|1,3;2,2;2,4=6",1,1,"f h2-"],["0,0;0,2;1,1=13|0,0;1,1;2,0=14|0,2;0,4;1,3=5|0,2;1,1;2,2=12|0,2;1,3;2,2=6|0,4;1,3;2,4=4|1,1;2,0;2,2=15|1,3;2,2;2,4=7",1,1,"v2-"],["0,0;0,2;1,1=10|0,2;0,4;1,3=14|0,2;1,1;2,2=9|0,2;1,3;2,2=15|0,4;1,3;2,4=13|1,3;2,2;2,4=12|2,2;2,4;3,3=6|2,4;3,3;4,4=5",1,1,"d0-"],["0,0;0,2;1,1=11|0,0;1,1;2,0=10|0,2;1,1;2,2=8|1,1;2,0;2,2=9|2,0;2,2;3,1=15|2,0;3,1;4,0=14|2,2;3,1;4,2=12|3,1;4,0;4,2=13",1,1,"f h2+"],["0,0;0,2;1,1=0|0,0;1,1;2,0=3|0,2;1,1;2,2=1|1,1;2,0;2,2=2|2,0;2,2;3,1=8|2,0;3,1;4,0=11|2,2;3,1;4,2=9|3,1;4,0;4,2=10",1,1,"f v2-"],["0,0;0,2;1,1=0|0,2;0,4;1,3=4|0,2;1,1;2,2=1|0,2;1,3;2,2=7|0,4;1,3;2,4=5|1,3;2,2;2,4=6|2,2;2,4;3,3=12|2,4;3,3;4,4=13",1,1,"f d0+"],["0,0;0,2;1,1=0|0,0;1,1;2,0=3|0,2;0,4;1,3=4|0,2;1,1;2,2=1|0,2;1,3;2,2=7|0,4;1,3;2,4=5|1,1;2,0;2,2=2|1,3;2,2;2,4=6|2,0;2,2;3,1=8|2,0;3,1;4,0=11|2,2;2,4;3,3=13|2,2;3,1;4,2=9|2,2;3,3;4,2=14|3,1;4,0;4,2=10",1,1,"d-2-"],["0,0;0,2;1,1=10|0,2;1,1;2,2=9|0,2;1,3;2,2=15|1,3;2,2;2,4=12|2,2;2,4;3,3=6|2,4;3,3;4,4=5",2,2,"d0+ d-2+"],["0,0;0,2;1,1=11|0,0;1,1;2,0=10|0,2;1,1;2,2=8|0,2;1,3;2,2=3|1,1;2,0;2,2=9|1,3;2,2;2,4=0|2,0;2,2;3,1=14|2,2;2,4;3,3=7|2,2;3,1;4,2=13|2,2;3,3;4,2=6|2,4;3,3;4,4=4|3,3;4,2;4,4=5",2,2,"d-2- d2+"],["0,0;0,2;1,1=0|0,2;0,4;1,3=4|0,2;1,1;2,2=1|0,2;1,3;2,2=7|0,4;1,3;2,4=5|1,3;2,2;2,4=6|2,2;2,4;3,3=14",2,2,"f d0+ a6+"],["0,0;0,2;1,1=3|0,0;1,1;2,0=0|0,2;1,1;2,2=2|0,2;1,3;2,2=11|1,1;2,0;2,2=1|2,0;2,2;3,1=7|2,0;3,1;4,0=4",2,2,"f d-2+ a4-"],["0,0;0,2;1,1=12|0,0;1,1;2,0=15|0,2;1,1;2,2=13|1,1;2,0;2,2=14",2,2,"f v2- h2+"],["0,0;0,2;1,1=10|0,2;0,4;1,3=14|0,2;1,1;2,2=9|0,2;1,3;2,2=15|0,4;1,3;2,4=13|1,3;2,2;2,4=12|2,2;2,4;3,3=6",2,2,"d0+ a2+"],["0,0;0,2;1,1=0|0,0;1,1;2,0=3|0,2;0,4;1,3=4|0,2;1,1;2,2=1|0,2;1,3;2,2=7|1,1;2,0;2,2=2|2,0;2,2;3,1=11",2,2,"a6- d0+"],["0,0;0,2;1,1=10|0,0;1,1;2,0=11|0,2;0,4;1,3=14|0,2;1,1;2,2=9|0,2;1,3;2,2=15|1,1;2,0;2,2=8",2,2,"h2- a4+"],["0,0;0,2;1,1=11|0,0;1,1;2,0=10|0,2;1,1;2,2=8|0,2;1,3;2,2=2|1,1;2,0;2,2=9|2,0;2,2;3,1=15|2,0;3,1;4,0=14",2,2,"f d0+ a2+"],["0,1;0,3;1,2=4|0,1;1,2;2,1=5|0,3;1,2;2,3=7|0,3;1,4;2,3=3|1,2;2,1;2,3=6|2,1;2,3;3,2=12|2,1;3,2;4,1=13",2,2,"a4- d2- f"],["0,0;0,2;1,1=14|0,0;1,1;2,0=13|0,2;1,1;2,2=15|1,1;2,0;2,2=12|2,0;2,2;3,1=6|2,0;3,1;4,0=5",2,2,"f v2- a4+"],["0,0;0,2;1,1=12|0,0;1,1;2,0=13|0,2;1,1;2,2=15|1,1;2,0;2,2=14",2,2,"v2+ h2+"],["0,0;0,2;1,1=10|0,0;1,1;2,0=11|0,2;1,1;2,2=9|0,2;1,3;2,2=14|1,1;2,0;2,2=8|1,3;2,2;2,4=13|2,0;2,2;3,1=2|2,2;2,4;3,3=6|2,2;3,1;4,2=1|2,2;3,3;4,2=7|2,4;3,3;4,4=5|3,3;4,2;4,4=4",2,2,"d2- d6+"],["0,1;0,3;1,2=4|0,1;1,0;2,1=1|0,1;1,2;2,1=7|0,3;1,2;2,3=5|1,2;2,1;2,3=6|2,1;2,3;3,2=12|2,3;3,2;4,3=13",2,2,"f d0- a2- f"],["0,0;0,2;1,1=11|0,0;1,1;2,0=10|0,2;1,1;2,2=2|1,1;2,0;2,2=1|2,0;2,2;3,1=7|2,0;3,1;4,0=4|2,2;3,1;4,2=6|3,1;4,0;4,2=5",2,2,"d2+ h2-"],["0,0;0,2;1,1=10|0,0;1,1;2,0=11|0,2;1,1;2,2=9|0,2;1,3;2,2=15|1,1;2,0;2,2=8|1,3;2,2;2,4=12|2,0;2,2;3,1=2|2,2;2,4;3,3=6|2,2;3,1;4,2=1|2,2;3,3;4,2=7|2,4;3,3;4,4=5|3,3;4,2;4,4=4",2,2,"d-2- d2-"],["0,0;0,2;1,1=15|0,2;0,4;1,3=7|0,2;1,1;2,2=12|0,2;1,3;2,2=6|0,4;1,3;2,4=4|1,3;2,2;2,4=5",2,2,"f v2- a6-"],["0,0;0,2;1,1=0|0,0;1,1;2,0=3|0,2;0,4;1,3=14|0,2;1,1;2,2=10|0,2;1,3;2,2=15|0,4;1,3;2,4=13|1,1;2,0;2,2=11|1,3;2,2;2,4=12",2,2,"f d-2+ v0+"],["0,1;0,3;1,2=3|0,1;1,0;2,1=8|0,1;1,2;2,1=2|0,3;1,2;2,3=0|1,2;2,1;2,3=1|2,1;2,3;3,2=7|2,3;3,2;4,3=4",2,2,"f d-2+ f d-4- f"],["0,0;0,2;1,1=10|0,0;1,1;2,0=11|0,2;1,1;2,2=9|1,1;2,0;2,2=8|2,0;2,2;3,1=2|2,0;3,1;4,0=5|2,2;3,1;4,2=1|3,1;4,0;4,2=4",2,2,"d2+ v2+"],["0,0;0,2;1,1=0|0,2;0,4;1,3=13|0,2;1,1;2,2=1|0,2;1,3;2,2=12|0,4;1,3;2,4=14|1,3;2,2;2,4=15",2,2,"f v2+ d0+"],["0,0;0,2;1,1=13|0,0;1,1;2,0=14|0,2;0,4;1,3=5|0,2;1,1;2,2=12|0,2;1,3;2,2=6|0,4;1,3;2,4=4|1,1;2,0;2,2=15|1,3;2,2;2,4=7|2,0;2,2;3,1=9|2,2;2,4;3,3=1|2,2;3,1;4,2=8|2,2;3,3;4,2=2",2,2,"d2+ a6-"],["0,0;0,2;1,1=14|0,0;1,1;2,0=13|0,2;0,4;1,3=10|0,2;1,1;2,2=15|0,2;1,3;2,2=9|1,1;2,0;2,2=12|2,0;2,2;3,1=5",2,2,"a2+ d0-"],["0,0;0,2;1,1=0|0,0;1,1;2,0=3|0,2;0,4;1,3=4|0,2;1,1;2,2=1|0,2;1,3;2,2=7|1,1;2,0;2,2=2",2,2,"f h2+ a4-"],["0,0;0,2;1,1=11|0,2;0,4;1,3=14|0,2;1,1;2,2=8|0,2;1,3;2,2=3|0,4;1,3;2,4=13|1,3;2,2;2,4=0|2,2;2,4;3,3=7|2,4;3,3;4,4=4",2,2,"d2- d4-"],["0,0;0,2;1,1=10|0,2;1,1;2,2=9|0,2;1,3;2,2=3|1,3;2,2;2,4=0|2,2;2,4;3,3=6|2,4;3,3;4,4=5",2,2,"d0- d2+"],["0,0;0,2;1,1=11|0,0;1,1;2,0=10|0,2;1,1;2,2=8|0,2;1,3;2,2=0|1,1;2,0;2,2=9|2,0;2,2;3,1=15|2,0;3,1;4,0=14",2,2,"f d0- a2-"],["0,0;0,2;1,1=14|0,0;1,1;2,0=15|0,2;1,1;2,2=4|1,1;2,0;2,2=7|2,0;2,2;3,1=1|2,2;3,1;4,2=0",2,2,"a4- v2-"],["0,0;0,2;1,1=14|0,2;0,4;1,3=10|0,2;1,1;2,2=15|0,2;1,3;2,2=9",2,2,"f d0+ a4+"],["0,0;0,2;1,1=10|0,2;0,4;1,3=14|0,2;1,1;2,2=9|0,2;1,3;2,2=15|0,4;1,3;2,4=13|1,3;2,2;2,4=12|2,2;2,4;3,3=4",2,2,"d0- a2-"],["0,0;0,2;1,1=14|0,2;0,4;1,3=5|0,2;1,1;2,2=15|0,2;1,3;2,2=10|0,4;1,3;2,4=4|1,3;2,2;2,4=11|2,2;2,4;3,3=2|2,4;3,3;4,4=3",2,2,"a6- a8-"],["0,0;0,2;1,1=0|0,0;1,1;2,0=3|0,2;0,4;1,3=4|0,2;1,1;2,2=1|0,2;1,3;2,2=7|0,4;1,3;2,4=5|1,1;2,0;2,2=2|1,3;2,2;2,4=6|2,0;2,2;3,1=11|2,2;2,4;3,3=12|2,2;3,1;4,2=10|2,2;3,3;4,2=15",2,2,"a6- d-2+"],["0,0;0,2;1,1=10|0,0;1,1;2,0=11|0,2;0,4;1,3=14|0,2;1,1;2,2=9|0,2;1,3;2,2=15|1,1;2,0;2,2=8|2,0;2,2;3,1=3",2,2,"f a2+ d0-"],["0,0;0,2;1,1=2|0,0;1,1;2,0=3|0,2;1,1;2,2=1|0,2;1,3;2,2=7|1,1;2,0;2,2=0|1,3;2,2;2,4=4",2,2,"h2+ d0+"],["0,1;0,3;1,2=3|0,1;1,2;2,1=0|0,3;1,2;2,3=2|0,3;1,4;2,3=11|1,2;2,1;2,3=1|2,1;2,3;3,2=7|2,1;3,2;4,1=4",2,2,"f d-2+ a4+ f"],["0,0;0,2;1,1=5|0,2;0,4;1,3=13|0,2;1,1;2,2=6|0,2;1,3;2,2=12",2,2,"f d0- a4+"],["0,0;0,2;1,1=14|0,0;1,1;2,0=13|0,2;0,4;1,3=10|0,2;1,1;2,2=15|0,2;1,3;2,2=9|1,1;2,0;2,2=12|2,0;2,2;3,1=6",2,2,"f d2+ a4+"],["0,0;0,2;1,1=4|0,0;1,1;2,0=5|0,2;1,1;2,2=7|1,1;2,0;2,2=6|2,0;2,2;3,1=11|2,2;3,1;4,2=10",2,2,"v2- a6+"],["0,0;0,2;1,1=13|0,0;1,1;2,0=14|0,2;0,4;1,3=5|0,2;1,1;2,2=12|0,2;1,3;2,2=6|1,1;2,0;2,2=15|2,0;2,2;3,1=11",2,2,"d0- a6+"],["0,0;0,2;1,1=0|0,0;1,1;2,0=3|0,2;1,1;2,2=4|1,1;2,0;2,2=5|2,0;2,2;3,1=12|2,0;3,1;4,0=13|2,2;3,1;4,2=15|3,1;4,0;4,2=14",2,2,"f d2- h0+"],["0,1;0,3;1,2=14|0,1;1,0;2,1=11|0,1;1,2;2,1=15|0,3;1,2;2,3=13|1,2;2,1;2,3=12|2,1;2,3;3,2=6|2,3;3,2;4,3=5",2,2,"d0- a6- f"],["0,0;0,2;1,1=10|0,0;1,1;2,0=11|0,2;0,4;1,3=4|0,2;1,1;2,2=0|0,2;1,3;2,2=7|0,4;1,3;2,4=5|1,1;2,0;2,2=3|1,3;2,2;2,4=6",2,2,"d2- v4-"],["0,0;0,2;1,1=14|0,0;1,1;2,0=13|0,2;1,1;2,2=15|0,2;1,3;2,2=9|1,1;2,0;2,2=12|2,0;2,2;3,1=6|2,0;3,1;4,0=5",2,2,"f d-2- a4+"],["0,0;0,2;1,1=0|0,2;0,4;1,3=11|0,2;1,1;2,2=1|0,2;1,3;2,2=7|0,4;1,3;2,4=10|1,3;2,2;2,4=6|2,2;2,4;3,3=12|2,4;3,3;4,4=13",2,2,"f d2+ d0+"],["0,0;0,2;1,1=0|0,0;1,1;2,0=3|0,2;1,1;2,2=1|1,1;2,0;2,2=2|2,0;2,2;3,1=8|2,0;3,1;4,0=13|2,2;3,1;4,2=9|3,1;4,0;4,2=14",2,2,"f d-2- v2-"],["0,0;0,2;1,1=4|0,0;1,1;2,0=5|0,2;0,4;1,3=10|0,2;1,1;2,2=14|0,2;1,3;2,2=9|1,1;2,0;2,2=13",3,3,"d-2+ v0- d-4+"],["0,0;1,1;2,0=4|1,1;2,0;2,2=7|2,0;2,2;3,1=1|2,2;3,1;4,2=9",3,3,"f a4- v2+ d-2+"],["0,0;0,2;1,1=0|0,0;1,1;2,0=10|0,2;1,1;2,2=1|0,2;1,3;2,2=4|1,1;2,0;2,2=9",3,3,"a2+ d0+ h0-"],["0,0;0,2;1,1=3|0,0;1,1;2,0=0|0,2;1,1;2,2=8|1,1;2,0;2,2=9|2,0;2,2;3,1=6|2,0;3,1;4,0=5",3,3,"f d-2- h2+ a4+"],["0,1;0,3;1,2=5|0,1;1,2;2,1=4|0,3;1,2;2,3=6|0,3;1,4;2,3=13|1,2;2,1;2,3=7",3,3,"d-2- f d0+ f h2+"],["0,0;0,2;1,1=11|0,0;1,1;2,0=10|0,2;1,1;2,2=8|1,1;2,0;2,2=9|2,0;2,2;3,1=6|2,0;3,1;4,0=13",3,3,"f d2+ h2+ a4+"],["0,1;0,3;1,2=10|0,1;1,2;2,1=11|0,3;1,2;2,3=5|0,3;1,4;2,3=14|1,2;2,1;2,3=4|2,1;2,3;3,2=1|2,1;3,2;4,1=0",3,3,"a2+ a0+ d-2+ f"],["0,0;0,2;1,1=4|0,0;1,1;2,0=5|0,2;1,1;2,2=7|1,1;2,0;2,2=6|2,0;2,2;3,1=9",3,3,"v2- d0+ a6-"],["0,1;0,3;1,2=3|0,1;1,0;2,1=11|0,1;1,2;2,1=2|0,3;1,2;2,3=0|1,2;2,1;2,3=1|2,1;2,3;3,2=7",3,3,"a6- d0- a10+ f"],["0,1;1,0;2,1=0|0,1;1,2;2,1=4|1,2;2,1;2,3=5|2,1;2,3;3,2=15|2,3;3,2;4,3=14",3,3,"a4- f d-2- a2+ f"],["0,0;1,1;2,0=5|1,1;2,0;2,2=6|2,0;2,2;3,1=12|2,2;3,1;4,2=15|2,2;3,3;4,2=11",3,3,"d0- a6- d2-"],["0,0;1,1;2,0=13|1,1;2,0;2,2=12|2,0;2,2;3,1=1|2,2;3,1;4,2=2",3,3,"f h2- d0- d2-"],["0,0;0,2;1,1=5|0,0;1,1;2,0=4|0,2;1,1;2,2=6|0,2;1,3;2,2=13|1,1;2,0;2,2=7|2,0;2,2;3,1=3",3,3,"d-2+ a4- d-6-"],["0,1;0,3;1,2=13|0,1;1,0;2,1=5|0,1;1,2;2,1=12|0,3;1,2;2,3=11|1,2;2,1;2,3=8",3,3,"a2+ d0+ f h0-"],["0,0;1,1;2,0=11|1,1;2,0;2,2=8|2,0;2,2;3,1=2|2,2;3,1;4,2=1|2,2;3,3;4,2=5",3,3,"d0- d2- a2-"],["0,1;0,3;1,2=11|0,3;1,2;2,3=8|0,3;1,4;2,3=2",3,3,"f d0- f d0- d2+ f"],["0,0;0,2;1,1=10|0,2;1,1;2,2=9|0,2;1,3;2,2=3|1,3;2,2;2,4=0|2,2;2,4;3,3=4",3,3,"d0- d2+ a2-"],["0,0;0,2;1,1=13|0,0;1,1;2,0=14|0,2;0,4;1,3=4|0,2;1,1;2,2=1|0,2;1,3;2,2=7|1,1;2,0;2,2=2|2,0;2,2;3,1=11",3,3,"a6- d2+ d0+"],["0,1;0,3;1,2=12|0,1;1,0;2,1=10|0,1;1,2;2,1=15|0,3;1,2;2,3=13|1,2;2,1;2,3=14",3,3,"a6- d0- f h4-"],["0,0;0,2;1,1=13|0,0;1,1;2,0=14|0,2;1,1;2,2=8|0,2;1,3;2,2=5|1,1;2,0;2,2=9|1,3;2,2;2,4=4",3,3,"f d-2- v2- d2+"],["0,0;0,2;1,1=14|0,0;1,1;2,0=15|1,1;2,0;2,2=11|2,0;2,2;3,1=1|2,2;3,1;4,2=0",3,3,"a4- a6+ v2-"],["0,1;0,3;1,2=2|0,1;1,2;2,1=3|0,3;1,2;2,3=6|0,3;1,4;2,3=13|1,2;2,1;2,3=5",3,3,"f a6- d0- f h4+"],["0,0;0,2;1,1=14|0,2;0,4;1,3=4|0,2;1,1;2,2=15|0,2;1,3;2,2=7",3,3,"f v2- d0- a4-"],["0,0;0,2;1,1=10|0,0;1,1;2,0=3|0,2;1,1;2,2=1|0,2;1,3;2,2=7|1,1;2,0;2,2=0|1,3;2,2;2,4=4",3,3,"f d-2+ a4- h4-"],["0,0;0,2;1,1=10|0,0;1,1;2,0=11|0,2;0,4;1,3=13|0,2;1,1;2,2=1|0,2;1,3;2,2=12|1,1;2,0;2,2=2",3,3,"f a2- h2- d0+"],["0,1;0,3;1,2=4|0,1;1,2;2,1=5|0,3;1,2;2,3=8|0,3;1,4;2,3=3|1,2;2,1;2,3=9|2,1;2,3;3,2=15|2,1;3,2;4,1=14",3,3,"d2- a6+ a4- f"],["0,0;0,2;1,1=4|0,0;1,1;2,0=5|0,2;1,1;2,2=7|0,2;1,3;2,2=1|1,1;2,0;2,2=6|2,0;2,2;3,1=14",3,3,"d2+ a4- d-2-"],["0,0;0,2;1,1=14|0,2;1,1;2,2=15|0,2;1,3;2,2=5|1,3;2,2;2,4=4|2,2;2,4;3,3=3",3,3,"d2- a4+ a2-"],["0,0;0,2;1,1=13|0,2;0,4;1,3=11|0,2;1,1;2,2=12|0,2;1,3;2,2=4",3,3,"d0- a2+ a0+"],["0,0;0,2;1,1=13|0,0;1,1;2,0=14|0,2;1,1;2,2=12|0,2;1,3;2,2=5|1,1;2,0;2,2=15|1,3;2,2;2,4=4|2,0;2,2;3,1=9|2,2;2,4;3,3=0|2,2;3,1;4,2=8|2,2;3,3;4,2=3",3,3,"a6- d2+ a10+"],["0,0;0,2;1,1=10|0,2;0,4;1,3=3|0,2;1,1;2,2=9|0,2;1,3;2,2=15|0,4;1,3;2,4=4|1,3;2,2;2,4=7",3,3,"d-2- d0- v2-"],["0,1;0,3;1,2=11|0,1;1,2;2,1=10|0,3;1,2;2,3=8|0,3;1,4;2,3=2|1,2;2,1;2,3=9",3,3,"f d0+ a2+ f h0+"],["0,1;0,3;1,2=0|0,1;1,0;2,1=7|0,1;1,2;2,1=1|0,3;1,2;2,3=3|1,2;2,1;2,3=2",3,3,"h2+ d0- a2- f"],["0,0;0,2;1,1=4|0,0;1,1;2,0=5|0,2;1,1;2,2=7|0,2;1,3;2,2=1|1,1;2,0;2,2=6|2,0;2,2;3,1=13",3,3,"d2- d6- a4-"],["0,0;0,2;1,1=14|0,2;0,4;1,3=4|0,2;1,1;2,2=3|0,2;1,3;2,2=7",3,3,"f d0+ a2+ a0+"],["0,0;1,1;2,0=11|1,1;2,0;2,2=8|2,0;2,2;3,1=14|2,2;3,1;4,2=13|2,2;3,3;4,2=4",3,3,"f d2- a4- a6+"],["0,0;1,1;2,0=5|1,1;2,0;2,2=6|2,0;2,2;3,1=14",3,3,"d0+ a4- d-2-"],["0,0;0,2;1,1=9|0,2;0,4;1,3=1|0,2;1,1;2,2=8|0,2;1,3;2,2=2",3,3,"v2- d2+ a6-"],["0,0;0,2;1,1=4|0,2;1,1;2,2=7|0,2;1,3;2,2=8|1,3;2,2;2,4=9",3,3,"v2- a6- a8+"],["0,0;0,2;1,1=11|0,0;1,1;2,0=10|0,2;1,1;2,2=3|1,1;2,0;2,2=0|2,0;2,2;3,1=14|2,2;3,1;4,2=13",3,3,"f a2+ v0+ a-2-"],["0,1;0,3;1,2=2|0,1;1,2;2,1=3|0,3;1,2;2,3=6|0,3;1,4;2,3=14|1,2;2,1;2,3=5",3,3,"a4+ f a6- f h4+"],["0,0;1,1;2,0=12|1,1;2,0;2,2=8|2,0;2,2;3,1=2|2,2;3,1;4,2=3",3,3,"f d0- h2- a6-"],["0,0;0,2;1,1=14|0,0;1,1;2,0=4|0,2;1,1;2,2=15|1,1;2,0;2,2=7|2,0;2,2;3,1=0",3,3,"d2- a4- h0-"],["0,0;0,2;1,1=14|0,2;0,4;1,3=4|0,2;1,1;2,2=15|0,2;1,3;2,2=10",3,3,"a6- d0+ a8-"],["0,0;1,1;2,0=10|1,1;2,0;2,2=9|2,0;2,2;3,1=15|2,2;3,1;4,2=7",3,3,"f a4+ v2- d2-"],["0,0;0,2;1,1=13|0,0;1,1;2,0=14|0,2;1,1;2,2=5|1,1;2,0;2,2=15",4,4,"v2+ d0+ a2+ v0+"],["0,1;0,3;1,2=3|0,1;1,0;2,1=5|0,1;1,2;2,1=14",4,4,"f a6+ f d0+ a4+ a2+ f"],["0,1;1,0;2,1=3|0,1;1,2;2,1=11|1,2;2,1;2,3=10|2,1;2,3;3,2=15|2,3;3,2;4,3=14",4,4,"f d-2- d2+ a2+ d0+ f"],["0,2;1,1;2,2=2|0,2;1,3;2,2=11|1,1;2,0;2,2=1|2,0;2,2;3,1=7",4,4,"a2+ a-2+ d0- d2-"],["0,1;1,0;2,1=11|0,1;1,2;2,1=2|1,2;2,1;2,3=1|2,1;2,3;3,2=5",4,4,"a6- d0- d2- a10- f"],["0,1;1,0;1,2=11|1,0;1,2;2,1=15|1,2;2,1;3,2=12|1,2;2,3;3,2=5",4,4,"a2- f a4- a6- d-2+ f"],["0,0;0,2;1,1=11|0,2;1,1;2,2=10|0,2;1,3;2,2=13|1,3;2,2;2,4=5",4,4,"f a6- v4+ d-2- d0+"],["0,1;0,3;1,2=7|0,1;1,0;2,1=9|0,1;1,2;2,1=15|0,3;1,2;2,3=4",4,4,"f d-2- a4- a6+ f h2-"],["0,0;0,2;1,1=11|0,0;1,1;2,0=3|0,2;1,1;2,2=6|1,1;2,0;2,2=5",4,4,"d0- a6- v4- h4+"],["0,0;0,2;1,1=3|0,0;1,1;2,0=0|0,2;1,1;2,2=15|0,2;1,3;2,2=9|1,1;2,0;2,2=12|2,0;2,2;3,1=6",4,4,"f d-2- d2+ a6+ a4+"],["0,0;0,2;1,1=12|0,0;1,1;2,0=13|0,2;1,1;2,2=8",4,4,"h2- a4- a6- h4+"],["0,0;1,1;2,0=14|1,1;2,0;2,2=15|2,0;2,2;3,1=0",4,4,"v2- d2- d4+ a4-"],["0,1;0,3;1,2=0|0,3;1,2;2,3=1|0,3;1,4;2,3=13",4,4,"d-2- f d0- v2+ d0- f"],["0,1;0,3;1,2=9|0,1;1,2;2,1=13|0,3;1,2;2,3=8|0,3;1,4;2,3=2",4,4,"d2+ a4- a6- f h4-"],["0,1;0,3;1,2=13|0,1;1,2;2,1=5|0,3;1,2;2,3=7|0,3;1,4;2,3=0|1,2;2,1;2,3=4",4,4,"d2- a4+ d6- h-2- f"],["0,0;0,2;1,1=10|0,0;1,1;2,0=15|0,2;1,1;2,2=11|1,1;2,0;2,2=12|2,0;2,2;3,1=4",4,4,"d-2- v2+ d0- a2-"],["0,0;0,2;1,1=5|0,2;0,4;1,3=14|0,2;1,1;2,2=6|0,2;1,3;2,2=9",4,4,"f d-2- v2- a4+ d0-"],["0,0;0,2;1,1=3|0,2;0,4;1,3=4|0,2;1,1;2,2=15|0,2;1,3;2,2=11",4,4,"f a6+ a4+ d-2+ d-4+"],["0,1;0,3;1,2=13|0,1;1,2;2,1=14|0,3;1,2;2,3=12|0,3;1,4;2,3=6|1,2;2,1;2,3=8",4,4,"d0- f d2- d6- f h-2+"],["0,0;0,2;1,1=14|0,0;1,1;2,0=5|0,2;1,1;2,2=2|0,2;1,3;2,2=11|1,1;2,0;2,2=6",4,4,"d2- a6- d4- h2+"],["0,1;0,3;1,2=14|0,3;1,2;2,3=13|0,3;1,4;2,3=4",4,4,"f d2+ f d0+ v2+ d-2+ f"],["0,1;1,0;1,2=9",4,4,"v2- h2- d0+ a6+ f"],["0,0;0,2;1,1=3|0,2;1,1;2,2=13|0,2;1,3;2,2=4",4,4,"f a6- d0- a8- d2+"],["0,1;1,0;2,1=12|0,1;1,2;2,1=10|1,2;2,1;2,3=11|2,1;2,3;3,2=0",4,4,"f a2+ d0- a-2+ d2- f"],["0,2;1,1;2,2=15|0,2;1,3;2,2=11|1,1;2,0;2,2=12|2,0;2,2;3,1=6",4,4,"f d2+ a4- a6- d-2-"],["0,0;0,2;1,1=14|0,2;1,1;2,2=1|0,2;1,3;2,2=7",4,4,"f d0- d2+ a2- a4-"],["0,1;0,3;1,2=3|0,1;1,0;2,1=10|0,1;1,2;2,1=2|0,3;1,2;2,3=0|1,2;2,1;2,3=4",4,4,"f a4- f a2+ a-2+ f h-2-"],["0,1;0,3;1,2=14|0,1;1,2;2,1=13|0,3;1,2;2,3=3|0,3;1,4;2,3=10|1,2;2,1;2,3=0|2,1;2,3;3,2=5",4,4,"f a2+ a0+ d-2- d2- f"],["0,1;1,0;2,1=10|0,1;1,2;2,1=14|1,2;2,1;2,3=13|2,1;2,3;3,2=7",4,4,"f d2- f d4+ d2- a2+ f"],["0,0;0,2;1,1=0|0,2;0,4;1,3=11|0,2;1,1;2,2=1|0,2;1,3;2,2=4|0,4;1,3;2,4=10|1,3;2,2;2,4=14",4,4,"d-2- a2+ a0+ h0+"],["0,0;0,2;1,1=0|0,0;1,1;2,0=1|0,2;1,1;2,2=11|1,1;2,0;2,2=12",4,4,"d-2- v2+ a4+ h2+"],["0,0;0,2;1,1=10|0,0;1,1;2,0=11|0,2;1,1;2,2=15|1,1;2,0;2,2=12|2,0;2,2;3,1=5|2,2;3,1;4,2=4",4,4,"d2- d6- a2+ h-4+"],["0,0;0,2;1,1=4|0,0;1,1;2,0=5|0,2;1,1;2,2=15|0,2;1,3;2,2=0|1,1;2,0;2,2=12",4,4,"f a6+ h2+ d0- a2-"],["0,0;1,1;2,0=11|1,1;2,0;2,2=7|2,0;2,2;3,1=1",4,4,"f d2+ d0- a4+ a2+"],["0,0;0,2;1,1=10|0,2;0,4;1,3=5|0,2;1,1;2,2=9|0,2;1,3;2,2=3",4,4,"d0- d2- h0- a4+"],["0,1;1,0;1,2=5",4,4,"v2+ h2+ d0+ a2+ f"],["0,0;1,1;2,0=10|1,1;2,0;2,2=14|2,0;2,2;3,1=5|2,2;3,1;4,2=4",4,4,"f a6- h4+ d0- d2+"],["0,1;1,0;1,2=15|1,0;1,2;2,1=5|1,2;2,1;3,2=4|1,2;2,3;3,2=2",4,4,"d-2- d2+ a4+ a2+ f"],["0,2;1,1;2,2=0|0,2;1,3;2,2=6",4,4,"d0- d2- a4+ a2+"],["0,0;0,2;1,1=5|0,0;1,1;2,0=6|1,1;2,0;2,2=2|2,0;2,2;3,1=11",4,4,"f d-2+ a4+ a2+ v-2-"],["0,1;1,0;1,2=13|1,0;1,2;2,1=10|1,2;2,1;3,2=11|1,2;2,3;3,2=0",4,4,"d-2- d2- a4- a6- f"],["0,1;0,3;1,2=0|0,1;1,0;2,1=13|0,1;1,2;2,1=10",4,4,"d-2- f d0- v2+ a2+ f"],["0,0;0,2;1,1=0|0,0;1,1;2,0=4|1,1;2,0;2,2=14",4,4,"a4- v2+ d-2+ v0+"],["0,1;1,0;1,2=1|1,0;1,2;2,1=7|1,2;2,1;3,2=6|1,2;2,3;3,2=14",4,4,"d2+ a4- d-2+ a6+ f"],["0,0;1,1;2,0=3|1,1;2,0;2,2=2|2,0;2,2;3,1=11",4,4,"a2- a6- d0- a8-"],["0,0;0,2;1,1=4|0,2;1,1;2,2=3|0,2;1,3;2,2=9",5,5,"a6- a10- d0- d2+ v6-"],["0,0;0,2;1,1=14|0,2;0,4;1,3=3|0,2;1,1;2,2=4|0,2;1,3;2,2=11",5,5,"f d-2- d2- v4- a4+ d4+"],["0,0;0,2;1,1=10|0,0;1,1;2,0=5|0,2;1,1;2,2=1|1,1;2,0;2,2=4",5,5,"d2- a6- a8- v6+ h2+"],["0,0;0,2;1,1=1|0,0;1,1;2,0=4|0,2;1,1;2,2=2|0,2;1,3;2,2=11|1,1;2,0;2,2=5",5,5,"d-2- a6- d2+ h4+ d0+"],["0,0;0,2;1,1=0|0,0;1,1;2,0=3|0,2;1,1;2,2=4|1,1;2,0;2,2=14|2,0;2,2;3,1=11",5,5,"f d2+ a6- a8- h4- d-2-"],["0,1;0,3;1,2=15|0,1;1,0;2,1=1|0,1;1,2;2,1=4|0,3;1,2;2,3=14",5,5,"d2- a2- a6- a8- f h2-"],["0,0;0,2;1,1=14|0,2;1,1;2,2=7|1,1;2,0;2,2=4",5,5,"d-2- a6- h4- d0- h4+"],["0,0;0,2;1,1=4|0,2;1,1;2,2=3|0,2;1,3;2,2=8",5,5,"d-2+ d-4+ h4- a6- d-6-"],["0,0;0,2;1,1=10|0,0;1,1;2,0=5|0,2;1,1;2,2=1|1,1;2,0;2,2=13",5,5,"d-2+ d-6- v0+ a4+ h4+"],["0,0;0,2;1,1=0|0,0;1,1;2,0=3|0,2;1,1;2,2=13|0,2;1,3;2,2=4|1,1;2,0;2,2=8",5,5,"a6- d-2+ d-4+ h6- a10+"],["0,1;0,3;1,2=0|0,1;1,0;2,1=14|0,1;1,2;2,1=10|0,3;1,2;2,3=3|1,2;2,1;2,3=11",5,5,"a2- a6- v4- d0- a10- f"],["0,1;0,3;1,2=1|0,1;1,2;2,1=4|0,3;1,2;2,3=9|0,3;1,4;2,3=13|1,2;2,1;2,3=5",5,5,"f d-2- d0- a2- v2- a6- f"],["0,1;0,3;1,2=11|0,1;1,0;2,1=14|0,1;1,2;2,1=7",5,5,"f d2- a6- d4+ v6+ a8- f"],["0,1;0,3;1,2=11|0,1;1,0;2,1=4|0,1;1,2;2,1=12",5,5,"f d-2+ a4- a6- v2+ d-6+ f"],["0,0;0,2;1,1=13|0,0;1,1;2,0=14|0,2;1,1;2,2=4|1,1;2,0;2,2=2|2,0;2,2;3,1=11",5,5,"a6- d2+ d0- a10- v6-"],["0,1;0,3;1,2=14|0,1;1,0;2,1=4|0,1;1,2;2,1=1",5,5,"d2- a2- a6- a8- d4+ f"],["0,1;0,3;1,2=9|0,1;1,0;2,1=7|0,1;1,2;2,1=0",5,5,"d2- d4- h0- d2- a6+ f"],["0,0;0,2;1,1=0|0,0;1,1;2,0=10|0,2;1,1;2,2=12|1,1;2,0;2,2=5",5,5,"d2- d6+ v4+ a4+ h0+"],["0,1;0,3;1,2=4|0,1;1,0;2,1=9|0,1;1,2;2,1=15",5,5,"d-2- h2- d0+ a4- a6+ f"],["0,0;0,2;1,1=4|0,0;1,1;2,0=1|0,2;1,1;2,2=5|1,1;2,0;2,2=10|2,0;2,2;3,1=13",5,5,"d2- a6- a8- v6- d6+"],["0,1;0,3;1,2=1|0,1;1,0;2,1=14|0,1;1,2;2,1=2|0,3;1,2;2,3=4|1,2;2,1;2,3=5",5,5,"d2- d6- v6+ d6- a4- f"],["0,0;0,2;1,1=10|0,2;1,1;2,2=1|0,2;1,3;2,2=4",5,5,"f d-2- d2- a4- h0+ d6-"],["0,0;0,2;1,1=13|0,2;1,1;2,2=9|0,2;1,3;2,2=1",5,5,"d2+ a4- a6+ v2- d0-"],["0,0;0,2;1,1=14|0,0;1,1;2,0=5|0,2;1,1;2,2=1|1,1;2,0;2,2=4",5,5,"d2+ v2+ d-2+ a4- h4-"],["0,2;1,1;2,2=3|0,2;1,3;2,2=8",5,5,"d-2- d0+ d-2+ a4- a6-"],["0,0;0,2;1,1=11|0,2;0,4;1,3=3|0,2;1,1;2,2=13|0,2;1,3;2,2=5",5,5,"f d2+ a6- h4+ d0- a8-"],["0,1;0,3;1,2=13|0,1;1,0;2,1=9|0,1;1,2;2,1=14|0,3;1,2;2,3=4",5,5,"d-2- d2- d4- a6- f h2-"],["0,0;1,1;2,0=5|1,1;2,0;2,2=14|2,0;2,2;3,1=10",5,5,"d2+ a6- d0+ v4- a10+"],["0,0;0,2;1,1=3|0,0;1,1;2,0=4|0,2;1,1;2,2=10|0,2;1,3;2,2=13|1,1;2,0;2,2=5",5,5,"a6- a8- d-2+ d-6+ h8-"],["0,1;0,3;1,2=0|0,3;1,2;2,3=10|0,3;1,4;2,3=15",5,5,"f d-2- f h2- d-2- d0+ a4- f"],["0,0;0,2;1,1=2|0,2;1,1;2,2=10|0,2;1,3;2,2=13",5,5,"d2- d6- a4- a6+ h-2-"],["0,1;0,3;1,2=5|0,1;1,0;2,1=3|0,1;1,2;2,1=11",5,5,"f d-2- a2- a6- a8- d0+ f"],["0,0;0,2;1,1=5|0,2;1,1;2,2=4|0,2;1,3;2,2=8",5,5,"d-2- a2+ v0+ d0- a-2+"],["0,0;0,2;1,1=10|0,0;1,1;2,0=11|0,2;1,1;2,2=4",5,5,"d-2- h2- a4- a6- h4-"],["0,0;1,1;2,0=12|1,1;2,0;2,2=15|2,0;2,2;3,1=3",5,5,"d2- v4- d6- d8- a6-"],["0,1;0,3;1,2=14|0,1;1,0;2,1=10|0,1;1,2;2,1=3|0,3;1,2;2,3=13|1,2;2,1;2,3=5",5,5,"d2+ a2+ d0+ v0+ a-2+ f"],["0,1;0,3;1,2=0|0,1;1,0;2,1=10|0,1;1,2;2,1=6",5,5,"f d-2+ d-6- a4- v0+ a4- f"],["0,2;1,1;2,2=14|0,2;1,3;2,2=9|1,1;2,0;2,2=13|2,0;2,2;3,1=4",5,5,"d-2- d2- d4- a6- a10+"],["0,0;1,1;2,0=10|1,1;2,0;2,2=15|2,0;2,2;3,1=0",5,5,"d-2- v2- d2- d4+ a4-"],["0,0;0,2;1,1=0|0,0;1,1;2,0=3|0,2;1,1;2,2=4|1,1;2,0;2,2=5|2,0;2,2;3,1=10",5,5,"d-2+ a2- a6- v2+ d-4+"],["0,0;1,1;2,0=5|1,1;2,0;2,2=1|2,0;2,2;3,1=10",5,5,"f d-2+ a4+ a2- h4+ d-4-"],["0,0;0,2;1,1=3|0,2;0,4;1,3=10|0,2;1,1;2,2=2|0,2;1,3;2,2=13",5,5,"a2- a4+ d-2+ v0- a4-"],["0,0;0,2;1,1=11|0,2;1,1;2,2=6|1,1;2,0;2,2=13",5,5,"a2- h2- a6- a8- v4-"],["0,0;0,2;1,1=0|0,0;1,1;2,0=9|0,2;1,1;2,2=4",5,5,"f a2+ h0- d-2- d0- h0+"],["0,1;0,3;1,2=3|0,1;1,0;2,1=10|0,1;1,2;2,1=14|0,3;1,2;2,3=0|1,2;2,1;2,3=4",5,5,"f d-2- d2+ a6- a8- h4+ f"]],"sum":[["1",4,4,"v2- h2+ d2- a4-"],["2",4,4,"v2- h2+ d2+ a4-"],["3",3,3,"v2- h2+ a4-"],["4",4,4,"v2- h2+ d2- a4+"],["5",3,3,"v2- h2+ d2-"],["6",4,4,"v2+ h2+ d0+ a2-"],["7",3,3,"v2- h2+ a4+"],["8",4,4,"v2+ h2+ d0- a2+"],["9",3,3,"a4+ d0+ a2-"],["10",2,2,"v2- h2-"],["11",3,3,"v2+ h2+ a2-"],["12",3,3,"d0- a4+ a2-"],["13",3,3,"v2+ h2+ d0-"],["14",3,3,"d0- d2- a4-"],["15",3,3,"v2+ h2+ a2+"],["16",2,2,"d0- a4-"],["17",3,3,"d0- a4- d2+"],["18",3,3,"h2+ d0- d2-"],["19",3,3,"v2- h2- a6-"],["20",3,3,"h2+ d0- a4+"],["21",3,3,"v2- h2- d0-"],["22",3,3,"d0- a2- a4-"],["23",2,2,"h2+ d0+"],["24",3,3,"v2- d0- a4-"],["25",2,2,"h2+ a2+"],["26",2,2,"v2+ h2-"],["27",3,3,"v2+ h2- a4-"],["28",2,2,"d0- a4+"],["29",2,2,"v2- a6-"],["30",3,3,"v2- a4+ d0+"],["31",2,2,"v2- d0+"],["32",2,2,"d0- a6-"],["33",3,3,"d-2- v2+ d-2-"],["34",2,2,"d0+ a6+"],["35",2,2,"a6- d0+"],["36",1,1,"h2-"],["37",2,2,"h2- a4-"],["38",3,3,"v2- d0- a6+"],["39",2,2,"v2+ d-2-"],["40",2,2,"d0+ a4-"],["41",2,2,"v2+ a4+"],["42",2,2,"v2- h2+"],["43",2,2,"d-2+ a4-"],["44",1,1,"d0+"],["45",2,2,"a4+ a2+"],["46",3,3,"d0+ a2- a4-"],["47",2,2,"v2- d0-"],["48",3,3,"v2+ d0+ a2-"],["49",2,2,"v2- a4+"],["50",2,2,"a2+ v0+"],["51",3,3,"d-2- v2+ a4-"],["52",1,1,"v2+"],["53",2,2,"v2+ a2-"],["54",2,2,"d2- v4-"],["55",2,2,"v2+ d-2+"],["56",1,1,"a4-"],["57",2,2,"a4- d2+"],["58",2,2,"v2+ h2+"],["59",3,3,"h2+ d2- a4-"],["60",3,3,"v2- d2+ a4-"],["61",2,2,"v2- a4-"],["62",2,2,"a6- h4-"],["63",2,2,"v2- d2+"],["64",2,2,"d-2+ a4+"],["65",2,2,"h2+ a4+"],["66",3,3,"d0+ a6- h4-"],["67",3,3,"d-2- v2+ a2+"],["68",2,2,"d-2- d0-"],["69",3,3,"d-2- a2+ a-2+"],["70",3,3,"h2- d0- a6+"],["71",2,2,"v2+ d0-"],["72",2,2,"a6- a8-"],["73",2,2,"v2+ a2+"],["74",2,2,"a2+ h0+"],["75",3,3,"d0- a2- a6+"],["76",2,2,"d2+ a4+"],["77",2,2,"h2- a6-"],["78",2,2,"d-2- v2-"],["79",2,2,"h2- d0-"],["80",1,1,"a4+"],["81",2,2,"d0+ a6-"],["82",2,2,"d-2- h2+"],["83",2,2,"d0- a6+"],["84",1,1,"v2-"],["85",2,2,"a2+ d0-"],["86",2,2,"d0+ a2+"],["87",3,3,"d-2- d2- a2-"],["88",2,2,"d-2- a6+"],["91",3,3,"d-2- d2- a2+"],["92",1,1,"d0-"],["93",3,3,"d2- a2+ a-2+"],["96",2,2,"d-2- a2+"],["97",3,3,"d2- a2- a6-"],["98",2,2,"a2+ a-2+"],["100",1,1,"h2+"],["101",3,3,"d2- a2+ a-2-"],["102",2,2,"d-2- d2-"],["106",2,2,"a2+ a-2-"],["107",1,1,"d-2-"],["108",2,2,"d2- a6-"],["112",2,2,"d2- a6+"],["113",1,1,"a6-"],["116",2,2,"d2- a2-"],["117",1,1,"a6+"],["120",2,2,"d2- a2+"],["121",1,1,"a2-"],["125",1,1,"a2+"],["131",1,1,"d2-"]]}};
+const N=i=>i+1;
+const $=id=>document.getElementById(id);
+const LV={1:'暖身',2:'入門',3:'進階',4:'挑戰',5:'大師'};
+const FOLDMODES=['adj','ex','vw','sum'];
+const MODES={
+  adj:{name:'相鄰配對',sub:'兩個數字摺到隔壁',ic:'↔'},
+  ex:{name:'只露出',sub:'最上面只剩這些數字',ic:'◱'},
+  vw:{name:'照圖摺',sub:'摺出一樣的樣子',ic:'▦'},
+  sum:{name:'數字加總',sub:'露出的數字加起來',ic:'＋'},
+  punch:{name:'打洞猜猜看',sub:'猜攤開後哪裡有洞',ic:'◎'},
+  maze:{name:'數字迷宮',sub:'把 1 到 16 連成一條路',ic:'↬'},
+  free:{name:'自由摺',sub:'沒有題目，隨意摺',ic:'✎'}
+};
+let BANK={},ORIG=[],ADJ=[],CENT=[];
+function buildPaper(){
+  const D=ALLDATA[P.key];BANK={};
+  FOLDMODES.forEach(m=>{BANK[m]=D[m].map(r=>{const p={mode:m,key:r[0],lv:r[1],d:r[2],sol:r[3]?r[3].split(' '):[],one:!!r[4]};
+    if(m==='adj'){p.pairs=r[0].split('|').map(s=>s.split('-').map(Number));p.t=p.pairs.flat();}
+    if(m==='ex')p.t=r[0].split(',').map(Number);
+    if(m==='vw')p.t=r[0].split('|').map(s=>+s.split('=')[1]);
+    if(m==='sum')p.target=+r[0];
+    return p;});});
+  FOLDMODES.forEach(m=>MODES[m].levels=[...new Set(BANK[m].map(p=>p.lv))].sort((a,b)=>a-b));
+  MODES.punch.levels=[1,2,3,4];MODES.maze.levels=[1,2,3,4];MODES.free.levels=[];
+  ORIG=initState().map(f=>f.v.map(p=>p.slice()));
+  const keys=ORIG.map(v=>v.map(p=>p.join(',')).sort().join(';'));
+  ADJ=keys.map((k,i)=>keys.map((k2,j)=>j).filter(j=>j!==i&&shareEdge(k,keys[j])));
+  CENT=ORIG.map(vs=>[vs.reduce((s,p)=>s+p[0],0)/vs.length,vs.reduce((s,p)=>s+p[1],0)/vs.length]);
+}
+function goalFn(p){if(!p)return null;
+  if(p.mode==='adj')return F=>{const pos=new Map();for(const [k,L] of slots(F))pos.set(L[L.length-1],k);return p.pairs.every(([a,b])=>pos.has(a)&&pos.has(b)&&shareEdge(pos.get(a),pos.get(b)));};
+  if(p.mode==='ex')return F=>topsOf(F).sort((x,y)=>x-y).join(',')===p.key;
+  if(p.mode==='vw')return F=>canonView(F)===p.key;
+  if(p.mode==='sum')return F=>topsOf(F).reduce((s,x)=>s+x+1,0)===p.target;}
+
+/* ---------- 狀態 ---------- */
+let F,hist=[],folds=0,mode='adj',level=1,puzzle=null,goal=null,solved=false,usedHelp=false,busy=false,sel=null,hintMove=null,lastKey={},solKeys=null;
+let holes=new Map(),punch=null,picks=new Set(),revealed=false,stp=null,autoFlag=false;
+let maze=null,mpath=[];
+const opt={upright:false,marks:true,badges:true,xray:true,back:true,sum:true,next:true,limit:false,physical:false,sound:true,preset:'easy'};
+const PRESETS={easy:{marks:true,badges:true,xray:true,back:true,sum:true,next:true,limit:false},std:{marks:true,badges:true,xray:false,back:true,sum:true,next:false,limit:false},hard:{marks:false,badges:false,xray:false,back:false,sum:false,next:false,limit:true}};
+let paperKey='sq';
+try{const sv=JSON.parse(localStorage.getItem('fold16v2')||'{}');Object.assign(opt,sv.opt||{});if(sv.mode&&MODES[sv.mode])mode=sv.mode;if(sv.level)level=sv.level;if(sv.paper)paperKey=sv.paper;}catch(e){}
+try{const q=new URLSearchParams(location.search).get('paper');if(q==='tri'||q==='sq')paperKey=q;}catch(e){}
+function save(){try{localStorage.setItem('fold16v2',JSON.stringify({opt,mode,level,paper:P.key}));}catch(e){}}
+
+/* ---------- 音效 ---------- */
+let ac=null;
+function actx(){if(!opt.sound)return null;try{if(!ac)ac=new (window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}catch(e){return null}return ac;}
+function noise(len,f0,f1,vol){const c=actx();if(!c)return;const b=c.createBuffer(1,c.sampleRate*len,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);
+  const s=c.createBufferSource();s.buffer=b;const f=c.createBiquadFilter();f.type='bandpass';f.Q.value=1.2;f.frequency.setValueAtTime(f0,c.currentTime);f.frequency.exponentialRampToValueAtTime(f1,c.currentTime+len);
+  const g=c.createGain();g.gain.value=vol;s.connect(f).connect(g).connect(c.destination);s.start();}
+const swish=()=>noise(.3,900,3200,.5);
+function tone(fr,t0,dur,type='triangle',vol=.22){const c=actx();if(!c)return;const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=fr;
+  g.gain.setValueAtTime(0,c.currentTime+t0);g.gain.linearRampToValueAtTime(vol,c.currentTime+t0+.02);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+t0+dur);o.connect(g).connect(c.destination);o.start(c.currentTime+t0);o.stop(c.currentTime+t0+dur+.05);}
+const sTick=()=>tone(880,0,.08,'sine',.15);
+const sPop=()=>{noise(.08,2500,600,.9);tone(140,0,.12,'sine',.3);};
+const sStep=n=>tone(392*Math.pow(2,(n%12)/12),0,.12,'sine',.16);
+const sWin=()=>{[523,659,784,1047].forEach((f,i)=>tone(f,i*.12,.35));};
+const sNo=()=>{tone(220,0,.18,'square',.08);tone(180,.12,.22,'square',.08);};
+
+/* ---------- 版面 ---------- */
+const V=4.6;let tx=0,ty=0;
+function measure(){const wrap=document.querySelector('.mat-wrap');const avail=Math.max(280,wrap.clientWidth);
+  const size=Math.floor(Math.max(300,Math.min(avail,window.innerHeight*0.66,640)));const m=$('mat');m.style.width=m.style.height=size+'px';
+  m.style.backgroundSize=(size/V/2)+'px '+(size/V/2)+'px';$('board').setAttribute('viewBox',`0 0 ${V} ${V}`);}
+function centerOf(Fs){const [a,b,c,d]=bbox(Fs);return [V/2-(a+c)/2,V/2-(b+d)/2];}
+function setWorld(x,y){tx=x;ty=y;$('world').setAttribute('transform',`translate(${x} ${y})`);}
+function recenterNow(){const [x,y]=centerOf(F);setWorld(x,y);}
+
+/* ---------- 繪製工具 ---------- */
+const NS='http://www.w3.org/2000/svg';
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function geom(vs){const cx=vs.reduce((s,p)=>s+p[0],0)/vs.length,cy=vs.reduce((s,p)=>s+p[1],0)/vs.length;
+  if(vs.length===4){const xs=vs.map(p=>p[0]),ys=vs.map(p=>p[1]);return {sq:true,cx,cy,x0:Math.min(...xs),y0:Math.min(...ys)};}
+  let apex=vs[0];for(let i=0;i<3;i++){const p=vs[i],q=vs[(i+1)%3],r=vs[(i+2)%3];if((p[0]-q[0])**2+(p[1]-q[1])**2===(p[0]-r[0])**2+(p[1]-r[1])**2)apex=p;}
+  const ax=apex[0]-cx,ay=apex[1]-cy,al=Math.hypot(ax,ay);return {sq:false,cx,cy,ux:ax/al,uy:ay/al};}
+function textAngle(m){const det=m[0]*m[3]-m[1]*m[2];const R=det>0?m:mul(m,[-1,0,0,1]);return Math.round(Math.atan2(R[2],R[0])*180/Math.PI);}
+const isBack=f=>(f.m[0]*f.m[3]-f.m[1]*f.m[2])<0;
+function holePos(f,id){const h=holes.get(id);if(!h)return null;const M=f.m,o=ORIG[id][0],v=f.v[0];
+  const t=[v[0]-(M[0]*o[0]+M[1]*o[1]),v[1]-(M[2]*o[0]+M[3]*o[1])];return [M[0]*h[0]+M[1]*h[1]+t[0],M[2]*h[0]+M[3]*h[1]+t[1]];}
+function drawSlot(g,Fs,L,o={}){const id=L[L.length-1];const top=Fs[id];const vs=top.v;
+  const sg=el('g',{},g);
+  el('polygon',{points:vs.map(p=>p.join(',')).join(' '),class:'face '+(isBack(top)?'back':'front')},sg);
+  const G=geom(vs);const ti=o.targets?o.targets.get(id):undefined;const tg=ti!==undefined;
+  if(tg){const k=G.sq?.84:.8;el('polygon',{points:vs.map(([x,y])=>(G.cx+(x-G.cx)*k)+','+(G.cy+(y-G.cy)*k)).join(' '),class:'ring'+(ti===1?' ring2':'')},sg);}
+  const nx=G.sq?G.cx:G.cx+G.ux*.03,ny=G.sq?G.cy:G.cy+G.uy*.03;const ang=(opt.upright||o.upright)?0:textAngle(top.m);
+  const fs=o.fs||(G.sq?.46:.38);
+  const t=el('text',{x:nx,y:ny,class:'tnum'+(tg?(ti===1?' tg2':' tg'):''),'font-size':fs,transform:`rotate(${ang} ${nx} ${ny})`},sg);t.textContent=N(id);
+  if(o.badges&&L.length>1){const bx=G.sq?G.cx+.3:G.cx+G.ux*.37,by=G.sq?G.cy+.36:G.cy+G.uy*.37;const b=el('text',{x:bx,y:by,class:'tbadge','font-size':G.sq?.14:.12},sg);b.textContent=L.length+'層';}
+  if(o.xray&&L.length>1){const txt=L.slice(0,-1).reverse().map(N).join(' ');
+    if(G.sq){const xr=el('text',{x:G.x0+.08,y:G.y0+.14,class:'txr','font-size':.14,'text-anchor':'start'},sg);xr.style.textAnchor='start';xr.textContent=txt;}
+    else{const px=G.cx-G.ux*.23,py=G.cy-G.uy*.23;let a=Math.atan2(G.ux,-G.uy)*180/Math.PI;if(a>90)a-=180;if(a<=-90)a+=180;
+      const xr=el('text',{x:px,y:py,class:'txr','font-size':.13,transform:`rotate(${a} ${px} ${py})`},sg);xr.textContent=txt;}}
+  const hp=holePos(top,id);if(hp)el('circle',{cx:hp[0],cy:hp[1],r:.11,class:'hole'},sg);
+  return sg;}
+function lineSeg(t,c,Fs){const pts=[];for(const f of Fs)for(const p of f.v)if(fval(t,p)===c)pts.push(p);
+  const key=t==='v'?p=>p[1]:p=>p[0];pts.sort((a,b)=>key(a)-key(b));return [pts[0],pts[pts.length-1]];}
+const isFoldMode=()=>FOLDMODES.includes(mode)||mode==='free';
+function targetSet(){if(!puzzle||!opt.marks)return null;const m=new Map();
+  if(puzzle.mode==='adj')puzzle.pairs.forEach((pr,i)=>pr.forEach(id=>m.set(id,i)));else if(puzzle.mode==='ex')puzzle.t.forEach(id=>m.set(id,0));else return null;return m;}
+
+/* ---------- 摺紙畫面 ---------- */
+function render(o={}){
+  if(mode==='maze'){renderMaze();return;}
+  const L0=$('lay0'),L1=$('lay1'),U=$('ui');L0.innerHTML='';L1.innerHTML='';U.innerHTML='';L1.removeAttribute('transform');L1.classList.remove('flipped');
+  const S=slots(F);const targets=targetSet();const showX=opt.xray&&mode!=='punch';const showB=opt.badges&&mode!=='punch';
+  for(const [k,L] of S){const top=F[L[L.length-1]];let g=L0;
+    if(o.all)g=L1;else if(o.move&&side(o.move[0],o.move[1],top)===o.move[2])g=L1;
+    drawSlot(g,F,L,{targets,badges:showB,xray:showX});}
+  const canFold=isFoldMode()&&!busy&&!solved&&!stp&&!(opt.physical&&puzzle);
+  if(canFold||o.showLines){
+    for(const [t,c] of lines(F)){const [p,q]=lineSeg(t,c,F);const dx=q[0]-p[0],dy=q[1]-p[1],l=Math.hypot(dx,dy),ex=dx/l*.18,ey=dy/l*.18;
+      const g=el('g',{class:'fl-g'},U);if(sel&&sel[0]===t&&sel[1]===c)g.classList.add('sel');
+      if(hintMove&&hintMove!=='f'){const hm=parseMove(hintMove);if(hm[0]===t&&hm[1]===c)g.classList.add('hint');}
+      el('line',{x1:p[0]-ex,y1:p[1]-ey,x2:q[0]+ex,y2:q[1]+ey,class:'fl-hit'},g);el('line',{x1:p[0],y1:p[1],x2:q[0],y2:q[1],class:'fl'},g);
+      if(canFold)g.addEventListener('click',()=>pickLine(t,c));}
+    if(sel&&canFold)drawZones(U);}
+  if(o.stepMove&&o.stepMove!=='f')drawStepMove(U,o.stepMove,o.lineOnly);
+  if(punch&&!revealed&&punch.shown){const top=F[punch.topId];const hp=holePos(top,punch.topId);if(hp)el('circle',{cx:hp[0],cy:hp[1],r:.2,class:'punch-mark'},U);}
+  if(goal&&puzzle&&puzzle.mode==='adj'&&goal(F))drawAdj(U,S);
+  drawBack();}
+function sideText(t,dir){return {'v-1':'往右摺 ▶','v1':'◀ 往左摺','h-1':'往下摺 ▼','h1':'▲ 往上摺','d-1':'往右上摺 ◥','d1':'◣ 往左下摺','a-1':'往右下摺 ◢','a1':'◤ 往左上摺'}[t+dir];}
+function drawZones(U){const [t,c]=sel;const S=slots(F);
+  for(const dir of [-1,1]){const g=el('g',{class:'zone-g'},U);if(hintMove===t+c+(dir<0?'-':'+'))g.classList.add('hint');let sx=0,sy=0,n=0;
+    for(const [k,L] of S){const f=F[L[L.length-1]];if(side(t,c,f)!==dir)continue;el('polygon',{points:f.v.map(p=>p.join(',')).join(' '),class:'zonep'},g);const G=geom(f.v);sx+=G.cx;sy+=G.cy;n++;}
+    const lx=sx/n,ly=sy/n;const lab=el('g',{class:'zlabel'},g);const txt=sideText(t,dir);const w=.2*txt.length+.1;
+    el('rect',{x:lx-w/2,y:ly-.2,width:w,height:.4,rx:.2},lab);const tt=el('text',{x:lx,y:ly,'font-size':.2},lab);tt.textContent=txt;
+    g.addEventListener('click',()=>doUserFold(t+c+(dir<0?'-':'+')));}}
+function drawAdj(U,S){const pos=new Map();for(const [k,L] of S)pos.set(L[L.length-1],k);
+  puzzle.pairs.forEach(([a,b],i)=>{const ka=pos.get(a),kb=pos.get(b);if(!ka||!kb)return;const B=new Set(kb.split(';'));const sh=ka.split(';').filter(x=>B.has(x)).map(s=>s.split(',').map(Number));
+    if(sh.length<2)return;el('circle',{cx:(sh[0][0]+sh[1][0])/2,cy:(sh[0][1]+sh[1][1])/2,r:.13,class:'adjdot'+(i?' adjdot2':'')},U);});}
+function drawStepMove(U,m,lineOnly){const [t,c,dir]=parseMove(m);const seg=lineSeg(t,c,F);if(!seg[0])return;const [p,q]=seg;
+  if(!lineOnly){const g=el('g',{class:'zone-g hint'},U);let sx=0,sy=0,n=0;
+    for(const [k,L] of slots(F)){const f=F[L[L.length-1]];if(side(t,c,f)!==dir)continue;el('polygon',{points:f.v.map(p=>p.join(',')).join(' '),class:'zonep'},g);const G=geom(f.v);sx+=G.cx;sy+=G.cy;n++;}
+    if(n){const lx=sx/n,ly=sy/n,lab=el('g',{class:'zlabel'},U);const txt=sideText(t,dir);const w=.2*txt.length+.1;el('rect',{x:lx-w/2,y:ly-.2,width:w,height:.4,rx:.2},lab);const tt=el('text',{x:lx,y:ly,'font-size':.2},lab);tt.textContent=txt;}}
+  const g2=el('g',{class:'fl-g hint'},U);el('line',{x1:p[0],y1:p[1],x2:q[0],y2:q[1],class:'fl'},g2);}
+function miniSvg(Fs,size,o={}){const [a,b,c,d]=bbox(Fs);const pad=.15;const svg=el('svg',{viewBox:`${a-pad} ${b-pad} ${c-a+2*pad} ${d-b+2*pad}`,width:size,height:size,class:'mini-svg'});
+  for(const [k,L] of slots(Fs))drawSlot(svg,Fs,L,{targets:o.targets,fs:o.fs,upright:o.upright});return svg;}
+function drawBack(){const bv=$('backview');if(!opt.back||mode==='punch'||mode==='maze'||(opt.physical&&puzzle&&!solved&&!busy)){bv.style.display='none';bv.innerHTML='';return;}
+  bv.style.display='flex';bv.innerHTML='<span class="bv-label">翻過來會看到</span>';bv.appendChild(miniSvg(flipF(F),130,{targets:targetSet()}));}
+
+/* ---------- 動畫 ---------- */
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const RM=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function tween(ms,fn){return new Promise(res=>{if(RM){fn(1);res();return;}const t0=performance.now();const step=now=>{const k=Math.min(1,(now-t0)/ms);fn(k);if(k<1)requestAnimationFrame(step);else res();};requestAnimationFrame(step);});}
+const ease=k=>k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+function axisMatrix(t,c,s){const r=Math.SQRT1_2;const n=t==='v'?[1,0]:t==='h'?[0,1]:t==='d'?[r,-r]:[r,r];const cp=(t==='d'||t==='a')?c*r:c;const k=1-s;
+  const a=1-k*n[0]*n[0],bb=-k*n[0]*n[1],d=1-k*n[1]*n[1];return `matrix(${a} ${bb} ${bb} ${d} ${k*cp*n[0]} ${k*cp*n[1]})`;}
+async function animateMove(m){const L1=$('lay1');let t,c,dir;
+  if(m==='f'){const [x0,,x1]=bbox(F);t='v';c=(x0+x1)/2;render({all:true});}else{[t,c,dir]=parseMove(m);render({move:[t,c,dir]});}
+  $('ui').innerHTML='';swish();
+  await tween(520,k=>{const s=1-2*ease(k);L1.setAttribute('transform',axisMatrix(t,c,s));L1.classList.toggle('flipped',s<0);});
+  F=m==='f'?flipF(F):fold(F,t,c,dir);render();const [nx,ny]=centerOf(F);const ox=tx,oy=ty;
+  await tween(300,k=>{const e=ease(k);setWorld(ox+(nx-ox)*e,oy+(ny-oy)*e);});}
+async function animateUnfold(before,m){const L1=$('lay1');
+  if(m==='f'){await animateMove('f');F=before;render();return;}
+  const [t,c,dir]=parseMove(m);F=before;render({move:[t,c,dir]});$('ui').innerHTML='';
+  L1.setAttribute('transform',axisMatrix(t,c,-1));L1.classList.add('flipped');swish();const [nx,ny]=centerOf(F);const ox=tx,oy=ty;
+  await tween(560,k=>{const e=ease(k);const s=-1+2*e;L1.setAttribute('transform',axisMatrix(t,c,s));L1.classList.toggle('flipped',s<0);setWorld(ox+(nx-ox)*e,oy+(ny-oy)*e);});
+  render();}
+
+/* ---------- 摺紙操作 ---------- */
+function pickLine(t,c){if(busy||solved)return;sTick();if(sel&&sel[0]===t&&sel[1]===c)sel=null;else sel=[t,c];setCaption(sel?'再點一下要摺過去的那一邊':'');render();}
+async function doUserFold(m){if(busy||solved||!isFoldMode())return;
+  if(m!=='f'&&opt.limit&&puzzle&&folds>=puzzle.d){sNo();setCaption('摺數用完了，按「上一步」或「攤開重來」再試試',true);return;}
+  busy=true;sel=null;hintMove=null;hist.push({F,folds});if(m!=='f')folds++;await animateMove(m);busy=false;afterMove();}
+function sumNow(){return topsOf(F).reduce((s,x)=>s+x+1,0);}
+function afterMove(){updateStats();
+  if(goal&&goal(F)){solved=true;render();celebrateFold();return;}
+  if(opt.limit&&puzzle&&folds>=puzzle.d)setCaption('摺數用完了，還沒完成喔，按「上一步」再想想',true);
+  else setCaption(baseCaption());
+  render();}
+function baseCaption(){if(mode==='free')return '現在最上面看得到：'+topsOf(F).map(N).sort((a,b)=>a-b).join('、');
+  if(mode==='sum'&&opt.sum)return `現在露出的數字加起來是 ${sumNow()}`;return '';}
+function undo(){if(busy||!hist.length)return;const h=hist.pop();F=h.F;folds=h.folds;solved=false;sel=null;hintMove=null;sTick();setCaption(baseCaption());updateStats();render();recenterNow();}
+function reset(){if(busy)return;F=initState();hist=[];folds=0;solved=false;sel=null;hintMove=null;setCaption(puzzle?baseCaption():'先點一條淡藍色的摺線試試看');updateStats();render();recenterNow();}
+function setCaption(t,warn){const c=$('caption');c.textContent=t||'';c.classList.toggle('warn',!!warn);}
+
+/* ---------- 提示與解答（摺紙題） ---------- */
+function solveFrom(s,g,limit=40000){if(g(s))return [];const k0=skey(s);const seen=new Map([[k0,null]]);let front=[[s,k0]],count=0;
+  const path=k=>{const p=[];while(seen.get(k)){p.push(seen.get(k)[1]);k=seen.get(k)[0];}return p.reverse();};
+  while(front.length){const lvl=front.slice();
+    for(const [x,k] of front){const f=flipF(x),kf=skey(f);if(!seen.has(kf)){seen.set(kf,[k,'f']);if(g(f))return path(kf);lvl.push([f,kf]);}}
+    const nxt=[];for(const [x,k] of lvl){for(const m of movesOf(x)){const t=applyMove(x,m),kt=skey(t);if(seen.has(kt))continue;seen.set(kt,[k,m]);if(g(t))return path(kt);nxt.push([t,kt]);if(++count>limit)return null;}}
+    front=nxt;}return null;}
+function solutionKeys(){if(!solKeys){solKeys=[];let s=initState();solKeys.push(skey(s));for(const m of puzzle.sol){s=applyMove(s,m);solKeys.push(skey(s));}}return solKeys;}
+function hintFold(){if(busy||!puzzle||solved)return;setCaption('想一想……');busy=true;
+  setTimeout(()=>{const ks=solutionKeys();const i=ks.lastIndexOf(skey(F));let p=i>=0&&i<puzzle.sol.length?puzzle.sol.slice(i):null;if(!p)p=solveFrom(F,goal);busy=false;usedHelp=true;
+    if(!p){let back=-1;for(let j=hist.length-1;j>=0;j--){if(ks.includes(skey(hist[j].F))){back=hist.length-j;break;}}
+      setCaption(back>0?`提示：先按 ${back} 次「上一步」，回到對的路上再繼續`:'從這裡比較難走到，建議按「攤開重來」，或看解答',true);render();return;}
+    const m=p[0];const left=p.filter(x=>x!=='f').length;
+    if(m==='f'){hintMove=null;setCaption('提示：先把紙「翻面」看看（還要摺 '+left+' 次）');render();return;}
+    hintMove=m;const [t,c]=parseMove(m);sel=[t,c];sTick();setCaption('提示：'+moveText(m)+'（還要摺 '+left+' 次）');render();},30);}
+function moveText(m){if(m==='f')return '把整張紙翻面';const [t,c,d]=parseMove(m);
+  return {'v-1':'沿著直的摺線，把左邊往右摺過去','v1':'沿著直的摺線，把右邊往左摺過去','h-1':'沿著橫的摺線，把上面往下摺過去','h1':'沿著橫的摺線，把下面往上摺過去',
+    'd-1':'沿著斜線，把左下那一邊往右上摺過去','d1':'沿著斜線，把右上那一邊往左下摺過去','a-1':'沿著斜線，把左上那一邊往右下摺過去','a1':'沿著斜線，把右下那一邊往左上摺過去'}[t+d];}
+/* ---------- 一步一步看 ---------- */
+function foldStepper(seq,kind,extra){const states=[F];return Object.assign({kind,n:seq.length,i:0,seq,states,
+  fwd:async i=>{hist.push({F,folds});if(seq[i]!=='f')folds++;await animateMove(seq[i]);states[i+1]=F;},
+  back:async i=>{hist.pop();if(seq[i]!=='f')folds--;await animateUnfold(states[i],seq[i]);},
+  show:i=>{setCaption(`第 ${i+1} 步：${moveText(seq[i])}`);render({stepMove:seq[i]});}},extra||{});}
+function renderStepbar(){const sb=$('stepbar');sb.innerHTML='';if(!stp){sb.classList.remove('show');return;}sb.classList.add('show');
+  const done=stp.i>=stp.n;const lab=document.createElement('div');lab.className='step-lab';
+  lab.innerHTML=done?'全部完成':`第 <b>${stp.i+1}</b> / ${stp.n} 步`;
+  sb.append(btn('◀ 上一步','',stepPrev,busy||stp.i<=0),lab,btn('下一步 ▶','primary',stepNext,busy||done),btn('自動播完','',stepAuto,busy||done));}
+async function stepNext(){if(busy||!stp||stp.i>=stp.n)return;busy=true;renderStepbar();renderActions();await stp.fwd(stp.i);if(!stp){busy=false;return;}stp.i++;busy=false;stepShow();}
+async function stepPrev(){if(busy||!stp||stp.i<=0)return;autoFlag=false;busy=true;renderStepbar();renderActions();await stp.back(stp.i-1);if(!stp){busy=false;return;}stp.i--;busy=false;stepShow();}
+async function stepAuto(){if(busy||!stp)return;autoFlag=true;const me=stp;while(stp===me&&stp.i<stp.n&&autoFlag){await stepNext();if(stp===me&&stp.i<stp.n)await wait(650);}autoFlag=false;}
+function stepShow(){updateStats();if(stp){if(stp.i>=stp.n){const s=stp;s.onEnd&&s.onEnd();}else stp.show(stp.i);}renderStepbar();renderActions();}
+function playSolution(){if(busy||!puzzle)return;usedHelp=true;solved=false;F=initState();hist=[];folds=0;sel=null;hintMove=null;recenterNow();
+  stp=foldStepper(puzzle.sol,'sol',{onEnd:()=>{setCaption('完成了！這是其中一種摺法，可以按「上一步」倒回去再看一次。');render();sWin();}});
+  renderCover();stepShow();}
+function exitSolution(){if(busy)return;autoFlag=false;stp=null;solved=goal?goal(F):false;setCaption(solved?'完成了！':'從這裡開始，換你自己摺摺看');render();renderStepbar();renderActions();renderCover();}
+
+/* ---------- 過關 ---------- */
+function showWin(stars,title,text,party){if(party)sWin();else sTick();
+  $('winStars').innerHTML='★'.repeat(stars)+'<i>'+'★'.repeat(3-stars)+'</i>';$('winTitle').textContent=title;$('winText').textContent=text;
+  if(party&&!RM){const cf=$('confetti');cf.innerHTML='';const cols=['#FFFDF6','#FFD39A','#E8552D','#F4A93C','#028090'];
+    for(let i=0;i<46;i++){const p=document.createElement('i');p.style.left=Math.random()*100+'vw';p.style.background=cols[i%5];if(P.key==='tri')p.style.clipPath='polygon(0 0,100% 0,50% 100%)';p.style.animationDuration=(1.8+Math.random()*1.6)+'s';p.style.animationDelay=(Math.random()*.5)+'s';cf.appendChild(p);}
+    setTimeout(()=>cf.innerHTML='',4200);}
+  setTimeout(()=>$('winBox').classList.add('show'),650);}
+function celebrateFold(){const min=puzzle.d;let stars=folds<=min?3:folds<=min+2?2:1;if(usedHelp)stars=Math.min(stars,2);setCaption('完成了！');
+  showWin(stars,stars===3?'太厲害了！':'完成了！',`你摺了 ${folds} 次，這一題最少 ${min} 次就能完成。`+(folds>min?'下次試試看能不能更省一點。':''),true);}
+
+/* ---------- 打洞猜猜看 ---------- */
+function genPunch(L){for(let tries=0;tries<200;tries++){let s=initState();const seq=[];let ok=true;
+    for(let i=0;i<L;i++){const ms=movesOf(s);if(!ms.length){ok=false;break;}const m=ms[Math.floor(Math.random()*ms.length)];seq.push(m);s=applyMove(s,m);}
+    if(!ok)continue;const S=[...slots(s).values()].filter(Lst=>Lst.length>=2);if(!S.length)continue;
+    S.sort((a,b)=>b.length-a.length);const pick=Math.random()<.6?S[0]:S[Math.floor(Math.random()*S.length)];
+    return {seq,stack:pick.slice(),topId:pick[pick.length-1],final:s};}
+  return null;}
+function startPunchDemo(){holes=new Map();revealed=false;punch.shown=false;F=initState();hist=[];folds=0;sel=null;hintMove=null;recenterNow();$('answer').classList.remove('show');
+  stp=foldStepper(punch.seq,'punch',{onEnd:doPunch});stepShow();}
+function doPunch(){punch.states=stp.states;stp=null;
+  const top=F[punch.topId];const G=geom(top.v);let H;
+  if(G.sq)H=[G.cx+.27,G.cy-.27];else{const px=-G.uy,py=G.ux;H=[G.cx+G.ux*.28+px*.17,G.cy+G.uy*.28+py*.17];}
+  for(const id of punch.stack){const f=F[id];const M=f.m,o=ORIG[id][0],v=f.v[0];const t=[v[0]-(M[0]*o[0]+M[1]*o[1]),v[1]-(M[2]*o[0]+M[3]*o[1])];
+    const d=[H[0]-t[0],H[1]-t[1]];holes.set(id,[M[0]*d[0]+M[2]*d[1],M[1]*d[0]+M[3]*d[1]]);}
+  punch.shown=true;sPop();render();
+  setCaption(opt.badges?`在這裡打一個洞！這一疊有 ${punch.stack.length} 層。`:'在這裡打一個洞！');
+  renderAnswer();renderStepbar();renderActions();updateStats();}
+function renderAnswer(){const A=$('answer');A.innerHTML='';A.classList.add('show');
+  const lbl=document.createElement('div');lbl.className='lbl';lbl.textContent=revealed?'對答案':'點選你猜會有洞的數字';A.appendChild(lbl);
+  const Fs=initState();const svg=el('svg',{viewBox:'-0.12 -0.12 4.24 4.24'});const truth=new Set(punch.stack);
+  Fs.forEach((f,id)=>{const g=el('g',{},svg);let cls='ans-face';
+    if(revealed){if(truth.has(id)&&picks.has(id))cls+=' ok';else if(truth.has(id))cls+=' miss';else if(picks.has(id))cls+=' wrong';}else if(picks.has(id))cls+=' pick';
+    el('polygon',{points:f.v.map(p=>p.join(',')).join(' '),class:cls},g);const G=geom(f.v);
+    const t=el('text',{x:G.sq?G.cx:G.cx+G.ux*.03,y:G.sq?G.cy:G.cy+G.uy*.03,class:'tnum','font-size':G.sq?.42:.36},g);t.textContent=N(id);
+    if(revealed){const hp=holePos(f,id);if(hp)el('circle',{cx:hp[0],cy:hp[1],r:.1,class:'hole'},g);}
+    if(!revealed)g.addEventListener('click',()=>{if(busy||stp)return;picks.has(id)?picks.delete(id):picks.add(id);sTick();renderAnswer();updateStats();});
+    g.style.cursor=revealed?'default':'pointer';});
+  A.appendChild(svg);
+  if(revealed){const lg=document.createElement('div');lg.className='legend';lg.innerHTML='<span><i style="background:#9FE0D9"></i>猜對</span><span><i style="background:#FFE2D8;outline:2px solid #E8552D"></i>漏掉的</span><span><i style="background:#D9DEDF"></i>多猜的</span>';A.appendChild(lg);}}
+function revealPunch(){if(busy||!punch||!punch.shown||revealed||stp)return;const n=punch.seq.length,S=punch.states;
+  stp={kind:'unfold',n,i:0,
+    fwd:async i=>{const j=n-1-i;await animateUnfold(S[j],punch.seq[j]);},
+    back:async i=>{const j=n-1-i;await animateMove(punch.seq[j]);},
+    show:i=>{const j=n-1-i;setCaption(`第 ${i+1} 步：沿著發亮的摺線，把紙打開一層`);render({stepMove:punch.seq[j],lineOnly:true});},
+    onEnd:finishReveal};
+  stepShow();}
+function finishReveal(){stp=null;F=initState();recenterNow();revealed=true;render();renderAnswer();renderActions();renderStepbar();
+  const truth=new Set(punch.stack);let ok=0,miss=0,wrong=0;truth.forEach(id=>picks.has(id)?ok++:miss++);picks.forEach(id=>{if(!truth.has(id))wrong++;});
+  const perfect=miss===0&&wrong===0;let stars=perfect?3:(miss+wrong===1?2:1);if(usedHelp)stars=Math.min(stars,2);
+  setCaption(`有洞的是：${[...truth].map(N).sort((a,b)=>a-b).join('、')}`);
+  showWin(stars,perfect?'全部猜對！':'打開來看看',perfect?`${truth.size} 個洞全部猜中，空間想像力很棒！`:`猜對 ${ok} 個，漏掉 ${miss} 個，多猜 ${wrong} 個。看看洞的位置，想想看它們為什麼會在那裡。`,perfect);}
+
+/* ---------- 數字迷宮 ---------- */
+function hamPath(){const n=16;for(let tries=0;tries<500;tries++){const start=Math.floor(Math.random()*n);const path=[start],vis=new Set([start]);
+    const dfs=()=>{if(path.length===n)return true;const cur=path[path.length-1];
+      const nb=ADJ[cur].filter(x=>!vis.has(x)).map(x=>[x,ADJ[x].filter(y=>!vis.has(y)).length+Math.random()*.9]).sort((a,b)=>a[1]-b[1]);
+      for(const [x] of nb){path.push(x);vis.add(x);if(dfs())return true;path.pop();vis.delete(x);}return false;};
+    if(dfs())return path;}return null;}
+function countSol(clues,limit=2){// clues: Map step->cell
+  const cellStep=new Map();for(const [s,c] of clues)cellStep.set(c,s);const start=clues.get(0);let cnt=0;const vis=new Set([start]);
+  const dfs=(cur,step)=>{if(cnt>=limit)return;if(step===15){cnt++;return;}const ns=step+1;const need=clues.get(ns);
+    for(const x of ADJ[cur]){if(vis.has(x))continue;if(need!==undefined&&need!==x)continue;const cs=cellStep.get(x);if(cs!==undefined&&cs!==ns)continue;vis.add(x);dfs(x,ns);vis.delete(x);if(cnt>=limit)return;}};
+  dfs(start,0);return cnt;}
+function makeMaze(lv){const m0=(()=>{const path=hamPath();const clues=new Map([[0,path[0]]]);const order=[...Array(15).keys()].map(i=>i+1).sort(()=>Math.random()-.5);
+    for(const s of order){if(countSol(clues)===1)break;clues.set(s,path[s]);}
+    for(const s of [...clues.keys()]){if(s===0)continue;const c=clues.get(s);clues.delete(s);if(countSol(clues)!==1)clues.set(s,c);}
+    return {path,clues,order};})();
+  const extra={1:7,2:4,3:2,4:0}[lv];let added=0;if(lv<=2&&!m0.clues.has(15)){m0.clues.set(15,m0.path[15]);added++;}
+  for(const s of m0.order){if(added>=extra)break;if(m0.clues.has(s))continue;m0.clues.set(s,m0.path[s]);added++;}
+  return {path:m0.path,clues:m0.clues,cellStep:new Map([...m0.clues].map(([s,c])=>[c,s]))};}
+function renderMaze(){const L0=$('lay0'),L1=$('lay1'),U=$('ui');L0.innerHTML='';L1.innerHTML='';U.innerHTML='';L1.removeAttribute('transform');
+  const Fs=initState();const end=mpath[mpath.length-1];const nexts=new Set(validNext());const onPath=new Map(mpath.map((c,i)=>[c,i]));
+  Fs.forEach((f,id)=>{let cls='mz-face';if(id===end&&!solved)cls+=' end';else if(opt.next&&nexts.has(id)&&!solved)cls+=' next';
+    const p=el('polygon',{points:f.v.map(q=>q.join(',')).join(' '),class:cls},L0);p.addEventListener('click',()=>tapCell(id));});
+  if(mpath.length>1)el('polyline',{points:mpath.map(c=>CENT[c].join(',')).join(' '),class:'mz-path'},L0);
+  Fs.forEach((f,id)=>{const G=geom(f.v);const x=G.sq?G.cx:G.cx+G.ux*.03,y=G.sq?G.cy:G.cy+G.uy*.03;const fs=G.sq?.46:.38;
+    if(maze.cellStep.has(id)){const t=el('text',{x,y,class:'mz-clue','font-size':fs},L0);t.textContent=maze.cellStep.get(id)+1;}
+    else if(onPath.has(id)){const t=el('text',{x,y,class:'mz-num','font-size':fs*.9},L0);t.textContent=onPath.get(id)+1;}});
+  $('backview').style.display='none';}
+function validNext(){if(solved||mpath.length>=16)return [];const cur=mpath[mpath.length-1];const ns=mpath.length;const need=maze.clues.get(ns);const used=new Set(mpath);
+  return ADJ[cur].filter(x=>!used.has(x)&&(need===undefined||need===x)&&(!maze.cellStep.has(x)||maze.cellStep.get(x)===ns));}
+function tapCell(id){if(busy||solved||stp)return;const i=mpath.indexOf(id);
+  if(i>=0){if(i===0&&mpath.length===1)return;mpath=mpath.slice(0,Math.max(1,i));sTick();setCaption('');render();updateStats();return;}
+  const cur=mpath[mpath.length-1];if(!ADJ[cur].includes(id)){sNo();setCaption('只能走到隔壁的格子喔（要有一條邊靠在一起）',true);return;}
+  if(!validNext().includes(id)){sNo();const ns=mpath.length+1;const need=maze.clues.get(mpath.length);
+    setCaption(need!==undefined?`第 ${ns} 步一定要走到寫著 ${ns} 的那一格`:`那一格寫著 ${maze.cellStep.get(id)+1}，要剛好在第 ${maze.cellStep.get(id)+1} 步走到`,true);return;}
+  mpath.push(id);sStep(mpath.length);setCaption('');updateStats();
+  if(mpath.length===16){solved=true;render();const stars=usedHelp?2:3;showWin(stars,'連成一條路了！','1 到 16 全部連起來，每一格都只走一次。',true);return;}
+  render();}
+function hintMaze(){if(busy||solved||stp)return;usedHelp=true;let k=0;while(k<mpath.length&&mpath[k]===maze.path[k])k++;
+  if(k<mpath.length){setCaption(`從第 ${k+1} 步開始走錯了，先退回去再試試`,true);mpath=mpath.slice(0,k);render();updateStats();return;}
+  const nx=maze.path[mpath.length];setCaption(`提示：第 ${mpath.length+1} 步走到發亮的那一格`);render();
+  const f=initState()[nx];const g=el('polygon',{points:f.v.map(q=>q.join(',')).join(' '),class:'zonep'},$('ui'));g.style.pointerEvents='none';g.parentNode.classList.add('zone-g');$('ui').setAttribute('class','');g.style.animation='blink 1s infinite';}
+function highlightCell(id){const f=initState()[id];const g=el('g',{class:'zone-g hint'},$('ui'));const p=el('polygon',{points:f.v.map(q=>q.join(',')).join(' '),class:'zonep'},g);p.style.pointerEvents='none';}
+function solveMaze(){if(busy)return;usedHelp=true;mpath=[maze.path[0]];solved=false;
+  stp={kind:'maze',n:15,i:0,fwd:async i=>{mpath.push(maze.path[i+1]);sStep(i+2);render();await wait(120);},back:async i=>{mpath.pop();render();},
+    show:i=>{setCaption(`第 ${i+1} 步：從 ${i+1} 走到發亮的那一格，寫上 ${i+2}`);render();highlightCell(maze.path[i+1]);},
+    onEnd:()=>{render();setCaption('1 到 16 都連起來了！可以按「上一步」倒回去再看。');sWin();}};
+  stepShow();}
+function exitMazeSolution(){if(busy)return;autoFlag=false;stp=null;solved=mpath.length===16;render();renderStepbar();renderActions();setCaption(solved?'':'從這裡開始，換你自己走走看');updateStats();}
+function clearMaze(){if(busy||stp)return;mpath=[maze.path[0]];solved=false;setCaption('');render();updateStats();}
+
+/* ---------- 側欄按鈕與統計 ---------- */
+function btn(label,cls,fn,disabled){const b=document.createElement('button');b.className='btn '+(cls||'');b.textContent=label;b.onclick=fn;if(disabled)b.disabled=true;return b;}
+function renderActions(){const A=$('actions');A.innerHTML='';const next=()=>{if(!busy)newPuzzle();};
+  if(stp&&(stp.kind==='sol'||stp.kind==='maze')){A.append(btn('結束解答，換我自己來','teal wide',stp.kind==='sol'?exitSolution:exitMazeSolution,busy),btn('下一題','primary wide',next,busy));return;}
+  if(mode==='punch'){if(stp){A.append(btn('下一題','primary wide',next,busy));return;}
+    A.append(btn('再看一次摺法','',()=>{if(!busy)startPunchDemo();},busy||revealed),btn('清除選擇','',()=>{if(busy||revealed)return;picks=new Set();renderAnswer();updateStats();},busy||revealed),
+      btn('打開看答案','teal wide',revealPunch,busy||revealed||!punch||!punch.shown),btn('下一題','primary wide',next,busy));return;}
+  if(mode==='maze'){A.append(btn('上一步','',()=>{if(busy||solved||mpath.length<=1)return;mpath.pop();sTick();render();updateStats();}),btn('清除重畫','',clearMaze),
+      btn('給我提示','',hintMaze),btn('看解答','teal',solveMaze),btn('下一題','primary wide',next));return;}
+  A.append(btn('翻面','',()=>doUserFold('f')),btn('上一步','',undo,!hist.length),btn('攤開重來','',reset),btn('給我提示','',hintFold,!puzzle),btn('看解答','teal',playSolution,!puzzle),btn('下一題','primary',next,!puzzle));}
+function updateStats(){
+  if(mode==='punch'){$('stat1L').textContent='老師摺了';$('stat1').textContent=folds;$('stat2L').textContent='你選了';$('stat2').textContent=picks.size;return;}
+  if(mode==='maze'){$('stat1L').textContent='已經走到';$('stat1').textContent=mpath.length;$('stat2L').textContent='總共';$('stat2').textContent=16;return;}
+  $('stat1L').textContent='已經摺了';$('stat1').textContent=folds;$('stat2L').textContent='最少要摺';$('stat2').textContent=puzzle?puzzle.d:'–';
+  if(isFoldMode()&&!stp)renderActions();}
+
+/* ---------- 出題 ---------- */
+function newPuzzle(){$('winBox').classList.remove('show');$('answer').classList.remove('show');$('answer').innerHTML='';
+  holes=new Map();punch=null;revealed=false;maze=null;stp=null;autoFlag=false;
+  const lvls=MODES[mode].levels;if(lvls.length&&!lvls.includes(level))level=lvls[0];
+  usedHelp=false;solKeys=null;F=initState();hist=[];folds=0;solved=false;sel=null;hintMove=null;puzzle=null;goal=null;
+  if(FOLDMODES.includes(mode)){let pool=BANK[mode].filter(p=>p.lv===level);if(pool.length>1)pool=pool.filter(p=>p.key!==lastKey[mode]);
+    puzzle=pool[Math.floor(Math.random()*pool.length)];lastKey[mode]=puzzle.key;goal=goalFn(puzzle);}
+  if(mode==='punch'){const g=genPunch(level);punch={...g,shown:false};}
+  if(mode==='maze'){maze=makeMaze(level);mpath=[maze.path[0]];}
+  renderChallenge();renderLevels();recenterNow();renderActions();renderStepbar();updateStats();render();renderCover();
+  setCaption(mode==='free'?'先點一條淡藍色的摺線試試看':mode==='maze'?'從 1 開始，點隔壁的格子往下走':baseCaption());
+  if(mode==='punch'){setCaption('');startPunchDemo();}}
+const stamp=(i,k)=>`<span class="stamp" style="background:${k?'var(--teal)':'var(--orange)'};transform:rotate(${k?3:-3}deg)">${N(i)}</span>`;
+function renderChallenge(){const c=$('challenge');const p=puzzle;let h='';const cell=P.key==='sq'?'格':'個三角形';
+  if(mode==='free')h=`<div class="ch-text"><p class="ch-title">自由摺摺看</p><p class="ch-sub">點一條淡藍色的摺線，再點要摺過去的那一邊。看看數字會跑到哪裡。</p></div>`;
+  else if(mode==='punch')h=`<div class="ch-text"><p class="ch-title">打洞猜猜看</p><p class="ch-sub">先看紙怎麼摺，摺好後會在一個地方打洞。猜猜看攤開後，哪些數字的${P.key==='sq'?'格子':'三角形'}會有洞？</p></div>`;
+  else if(mode==='maze')h=`<div class="ch-text"><p class="ch-title">把 1 到 16 連成一條路</p><p class="ch-sub">從 1 開始，每次走到隔壁（有一條邊靠在一起）的${P.key==='sq'?'格子':'三角形'}，每一${cell}只走一次。路要剛好經過題目給的數字。</p></div>`;
+  else if(p.mode==='adj'){const pr=p.pairs;if(pr.length===1)h=`<div class="ch-text"><p class="ch-title">把 ${stamp(pr[0][0],0)} 和 ${stamp(pr[0][1],0)} 摺到隔壁</p><p class="ch-sub">左右或上下靠在一起都可以：兩${cell}要有一條邊貼著，而且都要在最上面看得到。</p></div>`;
+    else h=`<div class="ch-text"><p class="ch-title">把 ${stamp(pr[0][0],0)} 和 ${stamp(pr[0][1],0)}、${stamp(pr[1][0],1)} 和 ${stamp(pr[1][1],1)} 都摺到隔壁</p><p class="ch-sub">兩組要同時做到：同一組的兩${cell}要有一條邊貼著，而且都要在最上面看得到。</p></div>`;}
+  else if(p.mode==='ex')h=`<div class="ch-text"><p class="ch-title">摺到最上面只看得到這 ${p.t.length} 個數字</p><div class="chips">${p.t.slice().sort((a,b)=>a-b).map(i=>stamp(i,0)).join('')}</div>${opt.marks?'<p class="ch-sub">紙上用紅色圈起來的就是這幾個數字。</p>':''}</div>`;
+  else if(p.mode==='vw')h=`<div id="vwPic"></div><div class="ch-text"><p class="ch-title">照著這張圖摺出一樣的樣子</p><p class="ch-sub">紙可以轉方向，形狀和數字位置對了就算成功。</p></div>`;
+  else if(p.mode==='sum')h=`<div class="ch-text"><p class="ch-title">摺到最上面露出的數字，加起來剛好是 <span class="stamp" style="min-width:2.2em">${p.target}</span></p><p class="ch-sub">攤開時 1 到 16 全部加起來是 136。摺起來蓋住一些數字，讓總和變小。答案不只一種。</p></div>`;
+  c.innerHTML=h;
+  if(p&&p.mode==='vw'){const fake=p.key.split('|').map(s=>{const [vs,id]=s.split('=');return {id:+id,v:vs.split(';').map(q=>q.split(',').map(Number))};});
+    let A=1e9,B=1e9,C=-1e9,D=-1e9;fake.forEach(o=>o.v.forEach(([x,y])=>{A=Math.min(A,x);B=Math.min(B,y);C=Math.max(C,x);D=Math.max(D,y);}));
+    const sz=Math.max(C-A,D-B);const pad=.15;const svg=el('svg',{viewBox:`${A-pad} ${B-pad} ${sz+2*pad} ${sz+2*pad}`,width:170,height:170,class:'mini-svg'});
+    const svgF=[];fake.forEach(o=>{// 方形要照順序排頂點
+      let v=o.v;if(v.length===4){const cx=v.reduce((s,q)=>s+q[0],0)/4,cy=v.reduce((s,q)=>s+q[1],0)/4;v=v.slice().sort((a,b)=>Math.atan2(a[1]-cy,a[0]-cx)-Math.atan2(b[1]-cy,b[0]-cx));}
+      svgF[o.id]={v,z:0,m:[1,0,0,1]};});
+    fake.forEach(o=>drawSlot(svg,svgF,[o.id],{fs:P.key==='sq'?.5:.42,upright:true}));$('vwPic').appendChild(svg);}}
+function renderModes(){const n=$('modes');n.innerHTML='';Object.entries(MODES).forEach(([k,m])=>{const b=document.createElement('button');b.className='mode';b.setAttribute('role','tab');
+  b.setAttribute('aria-selected',k===mode);b.innerHTML=`<span class="ic">${m.ic}</span><span><b>${m.name}</b><small>${m.sub}</small></span>`;
+  b.onclick=()=>{if(busy)return;mode=k;save();renderModes();newPuzzle();};n.appendChild(b);});}
+function renderLevels(){const n=$('levels');n.innerHTML='';const lv=MODES[mode].levels;n.style.display=lv.length?'flex':'none';
+  lv.forEach(l=>{const b=document.createElement('button');b.className='lv';b.setAttribute('aria-pressed',l===level);b.innerHTML=`${LV[l]}<span class="st">${'★'.repeat(l)}</span>`;
+    b.onclick=()=>{if(busy)return;level=l;save();newPuzzle();};n.appendChild(b);});
+  if(!lv.length)return;const s=document.createElement('span');s.style.cssText='align-self:center;color:var(--ink-soft);font-size:16px;margin-left:4px';
+  if(mode==='punch')s.textContent=`會摺 ${level} 次再打洞`;
+  else if(mode==='maze')s.textContent=`題目先給 ${maze?maze.clues.size:''} 個數字`;
+  else{const mn=Math.min(...BANK[mode].filter(q=>q.lv===level).map(q=>q.d));const two=mode==='adj'&&level>=4;
+    s.textContent=two?`兩組數字同時配對，最少摺 ${mn} 次`:`這一級最少要摺 ${mn} 次`;}
+  n.appendChild(s);}
+function renderCover(){const m=$('mat');m.querySelector('.cover')?.remove();if(!opt.physical||!puzzle||!FOLDMODES.includes(mode)||stp||solved)return;
+  const c=document.createElement('div');c.className='cover';c.innerHTML=`<div class="big">請拿出紙，一起摺摺看</div><div>摺好了再按「看解答」對答案</div>`;
+  const s=miniSvg(initState(),150,{upright:true});s.style.transform='rotate(-8deg)';c.prepend(s);m.appendChild(c);}
+function ruleSheets(){const cur=P.key;for(const [k,id] of [['sq','ruleSq'],['tri','ruleTri']]){setPaper(k);const s=$(id);s.innerHTML='';const Fs=initState();for(const [kk,L] of slots(Fs))drawSlot(s,Fs,L,{fs:k==='sq'?.5:.45,upright:true});}setPaper(cur);}
+function switchPaper(k){if(busy)return;setPaper(k);buildPaper();document.querySelectorAll('.paper-switch button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.paper===k));
+  $('colorNote').textContent=k==='sq'?'白色是紙的正面，橘色是背面。每一格正反面都是同一個數字。':'白色是紙的正面，橘色是背面。每一個三角形正反面都是同一個數字。';
+  save();renderModes();newPuzzle();}
+
+/* ---------- 設定 ---------- */
+const OPTMAP={optMarks:'marks',optBadges:'badges',optXray:'xray',optBack:'back',optSum:'sum',optNext:'next',optLimit:'limit',optPhysical:'physical'};
+function syncOpts(){Object.entries(OPTMAP).forEach(([id,k])=>$(id).checked=!!opt[k]);document.querySelectorAll('#orient button').forEach(b=>b.setAttribute('aria-pressed',(b.dataset.o==='up')===!!opt.upright));document.querySelectorAll('#presets button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.p===opt.preset));
+  $('soundBtn').textContent='音效 '+(opt.sound?'開':'關');$('soundBtn').setAttribute('aria-pressed',opt.sound);}
+function optChanged(){save();syncOpts();renderCover();if(!busy){if(stp&&stp.i<stp.n)stp.show(stp.i);else render();if(mode==='sum'&&!solved&&!stp)setCaption(baseCaption());if(puzzle&&puzzle.mode==='ex')renderChallenge();}}
+document.querySelectorAll('#orient button').forEach(b=>b.onclick=()=>{opt.upright=b.dataset.o==='up';optChanged();sTick();});
+Object.entries(OPTMAP).forEach(([id,k])=>$(id).addEventListener('change',e=>{opt[k]=e.target.checked;if(k!=='physical')opt.preset='custom';optChanged();}));
+document.querySelectorAll('#presets button').forEach(b=>b.onclick=()=>{Object.assign(opt,PRESETS[b.dataset.p]);opt.preset=b.dataset.p;optChanged();sTick();});
+document.querySelectorAll('.paper-switch button').forEach(b=>b.onclick=()=>switchPaper(b.dataset.paper));
+$('soundBtn').onclick=()=>{opt.sound=!opt.sound;save();syncOpts();sTick();};
+$('rulesBtn').onclick=()=>$('rules').classList.add('show');
+document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.closest('.overlay').classList.remove('show'));
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show');}));
+$('winNext').onclick=()=>{$('winBox').classList.remove('show');newPuzzle();};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.querySelectorAll('.overlay.show').forEach(o=>o.classList.remove('show'));if(sel){sel=null;setCaption('');render();}}});
+let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(!busy)measure();},150);});
+syncOpts();measure();ruleSheets();switchPaper(paperKey);
+try{if(!localStorage.getItem('fold16all-seen')){$('rules').classList.add('show');localStorage.setItem('fold16all-seen','1');}}catch(e){}
+
+</script>
+</body>
+</html>
